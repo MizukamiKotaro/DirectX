@@ -1,8 +1,8 @@
 #include<Windows.h>
 
-//WindowsƒAƒvƒŠ‚Å‚ÌƒGƒ“ƒgƒŠ[ƒ|ƒCƒ“ƒg(mainŠÖ”)
+//Windowsã‚¢ãƒ—ãƒªã§ã®ã‚¨ãƒ³ãƒˆãƒªãƒ¼ãƒã‚¤ãƒ³ãƒˆ(mainé–¢æ•°)
 int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
-	//o—ÍƒEƒBƒ“ƒhƒE‚Ö‚Ì•¶šo—Í
+	//å‡ºåŠ›ã‚¦ã‚£ãƒ³ãƒ‰ã‚¦ã¸ã®æ–‡å­—å‡ºåŠ›
 	OutputDebugStringA("Hello,DirectX!\n");
 
 	return 0;
