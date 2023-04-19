@@ -1,4 +1,4 @@
-#include<Windows.h>
+﻿#include<Windows.h>
 #include<cstdint>
 
 //ウィンドウプロシャープ
@@ -25,7 +25,7 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR lpCmdLine, _In
 	//ウィンドウプロシージャ
 	wc.lpfnWndProc = WindowProc;
 	//ウィンドウクラス名(なんでも良い)
-	wc.lpszClassName = L"CG2Windowclass";
+	wc.lpszClassName = L"CG2WindowClass";
 	//インスタンスハンドル
 	wc.hInstance = GetModuleHandle(nullptr);
 	//カーソル
@@ -35,7 +35,34 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR lpCmdLine, _In
 	RegisterClass(&wc);
 
 
-	//クライアントの領域のサイズ
+	//クライアント領域のサイズ
+	const int32_t kClientWidth = 1280;
+	const int32_t kClientHeight = 720;
+
+	//ウィンドウサイズを表す構造体にクライアント領域を入れる
+	RECT wrc = { 0,0,kClientWidth,kClientHeight };
+
+	//クライアント領域を元に実際のサイズにwrcを変更してもらう
+	AdjustWindowRect(&wrc, WS_OVERLAPPEDWINDOW, false);
+
+	//ウィンドウの生成
+	HWND hwnd = CreateWindow(
+		wc.lpszClassName,      // 利用するクラス名
+		L"CG2",　　　　　　　　// タイトルバーの文字(何でもいい)
+		WS_OVERLAPPEDWINDOW,   // よく見るウィンドウスタイル
+		CW_USEDEFAULT,         // 表示x座標(windowsに任せる)
+		CW_USEDEFAULT,         // 表示y座標(windowsに任せる)
+		wrc.right - wrc.left,  // ウィンドウ横幅
+		wrc.bottom - wrc.top,  // ウィンドウ縦幅
+		nullptr,               // 親ウィンドウハンドル
+		nullptr,               // メニューハンドル
+		wc.hInstance,          // インスタンスハンドル
+		nullptr);              // オプション
+
+	//ウィンドウを表示する
+	ShowWindow(hwnd, SW_SHOW);
+
+
 
 	return 0;
 }
