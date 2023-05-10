@@ -98,8 +98,8 @@ IDxcBlob* CompileShader(
 		filePath.c_str(),//コンパイル対象のhlslファイル名
 		L"-E",L"main",//エントリーポイントの指定。基本的にmain以外にはしない
 		L"-T",profile,//ShaderProfileの設定
-		L"-zi",L"-Qembed_debug",//デバッグ用の情報を読み込む
-		L"-0d",//最適化を外しておく
+		L"-Zi",L"-Qembed_debug",//デバッグ用の情報を読み込む
+		L"-Od",//最適化を外しておく
 		L"-Zpr",//メモリレイアウトは優先
 	};
 	//実際にshaderをコンパイルする
@@ -404,10 +404,10 @@ if (SUCCEEDED(device->QueryInterface(IID_PPV_ARGS(&infoQueue)))) {
 	rasterizerDesc.FillMode = D3D12_FILL_MODE_SOLID;
 
 	//Shaderをコンパイルする
-	IDxcBlob* vertexShaderBlob = CompileShader(L"Object3d.VS.hlsl", L"vs_6_0", dxcUtils, dxcCompiler, includeHandler);
+	IDxcBlob* vertexShaderBlob = CompileShader(L"Object3D.VS.hlsl", L"vs_6_0", dxcUtils, dxcCompiler, includeHandler);
 	assert(vertexShaderBlob != nullptr);
 	
-	IDxcBlob* pixelShaderBlob = CompileShader(L"Object3d.PS.hlsl", L"ps_6_0", dxcUtils, dxcCompiler, includeHandler);
+	IDxcBlob* pixelShaderBlob = CompileShader(L"Object3D.PS.hlsl", L"ps_6_0", dxcUtils, dxcCompiler, includeHandler);
 	assert(pixelShaderBlob != nullptr);
 
 	//PSOを生成する
