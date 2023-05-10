@@ -145,8 +145,6 @@ copy "$(WindowsSdkDir)bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(TargetDir)dx
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\AL3\KamataEngine\DirectXGame\Matrix3x3.cpp" />
-    <ClCompile Include="..\..\AL3\KamataEngine\DirectXGame\Matrix4x4.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="Vector4.cpp" />
   </ItemGroup>
@@ -169,10 +167,6 @@ copy "$(WindowsSdkDir)bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(TargetDir)dx
     </FxCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\AL3\KamataEngine\DirectXGame\math\Matrix4x4.h" />
-    <ClInclude Include="..\..\AL3\KamataEngine\DirectXGame\math\Vector2.h" />
-    <ClInclude Include="..\..\AL3\KamataEngine\DirectXGame\math\Vector3.h" />
-    <ClInclude Include="..\..\AL3\KamataEngine\DirectXGame\Matrix3x3.h" />
     <ClInclude Include="Vector4.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
