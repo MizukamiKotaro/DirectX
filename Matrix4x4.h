@@ -3,6 +3,15 @@
 
 class Matrix4x4 {
 public:
+	enum RotateType {
+		kXYZ,
+		kYXZ,
+		kZXY,
+		kXZY,
+		kYZX,
+		kZYX
+	};
+public:
 	static Matrix4x4 Add(const Matrix4x4& m1, const Matrix4x4& m2);
 
 	static Matrix4x4 Subtract(const Matrix4x4& m1, const Matrix4x4& m2);
@@ -35,8 +44,17 @@ public:
 
 	static Matrix4x4 MakeRotateXYZMatrix(const Vector3& rotate);
 
+	static Matrix4x4 MakeRotateMatrix(const Vector3& rotate, RotateType rotateOrder);
+
 	static Matrix4x4 MakeAffinMatrix(
 		const Vector3& scale, const Vector3& rotate, const Vector3& translate);
+	static Matrix4x4 MakeAffinMatrix(const Vector3& scale, const Vector3& rotate, const Vector3& translate, RotateType rotateOrder);
+	//透視投影行列
+	static Matrix4x4 MakePerspectiveFovMatrix(float fovY, float aspectRatio, float nearClip, float farClip);
+	//正射影行列
+	static Matrix4x4 MakeOrthographicMatrix(float left, float top, float right, float bottom, float nearClip, float farClip);
+	//ビューポート変換行列
+	static Matrix4x4 MakeViewportMatrix(float left, float top, float width, float height, float minDepth, float maxDepth);
 
 public:
 	float m[4][4];
