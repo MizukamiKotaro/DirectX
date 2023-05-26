@@ -743,6 +743,43 @@ if (SUCCEEDED(device->QueryInterface(IID_PPV_ARGS(&infoQueue)))) {
 	vertexDate[5].position = { 0.5f,-0.5f,-0.5f,1.0f };
 	vertexDate[5].texcoord = { 1.0f,1.0f };
 
+	//Sprite用の頂点リソースを作る
+	ID3D12Resource* vertexResourceSphere = CreateBufferResource(device, sizeof(VertexData) * 6);
+	//頂点バッファーを作成する
+	D3D12_VERTEX_BUFFER_VIEW vertexBufferViewSprite{};
+	//リソースの先頭アドレスから使う
+	vertexBufferViewSprite.BufferLocation = vertexResourceSphere->GetGPUVirtualAddress();
+	//使用するリソースのサイズは頂点6つ分のサイズ
+	vertexBufferViewSprite.SizeInBytes = sizeof(VertexData) * 6;
+	//1頂点あたりのサイズ
+	vertexBufferViewSprite.StrideInBytes = sizeof(VertexData);
+
+	VertexData* vertexDataSprite = nullptr;
+	vertexResourceSphere->Map(0, nullptr, reinterpret_cast<void**>(&vertexDataSprite));
+	//1枚目の三角形
+	vertexDataSprite[0].position = { 0.0f,360.0f,0.0f,1.0f }; // 左下
+	vertexDataSprite[0].texcoord = { 0.0f,1.0f }; 
+	vertexDataSprite[1].position = { 0.0f,0.0f,0.0f,1.0f }; // 左上
+	vertexDataSprite[1].texcoord = { 0.0f,0.0f };
+	vertexDataSprite[2].position = { 640.0f,360.0f,0.0f,1.0f }; // 右下
+	vertexDataSprite[2].texcoord = { 1.0f,1.0f };
+	//2枚目の三角形
+	vertexDataSprite[3].position = { 0.0f,00.0f,0.0f,1.0f }; // 左上
+	vertexDataSprite[3].texcoord = { 0.0f,0.0f };
+	vertexDataSprite[4].position = { 640.0f,0.0f,0.0f,1.0f }; // 右上
+	vertexDataSprite[4].texcoord = { 1.0f,0.0f };
+	vertexDataSprite[5].position = { 640.0f,360.0f,0.0f,1.0f }; // 右下
+	vertexDataSprite[5].texcoord = { 1.0f,1.0f };
+
+	//Sprite用のTransformationMatrix用のリソースを作る。Matrix4x4　1つ分のサイズを用意する
+	ID3D12Resource* transformationMatrixResourceSprite = CreateBufferResource(device, sizeof(Matrix4x4));
+	//データを書き込む
+	Matrix4x4* transformationMatrixDataSprite = nullptr;
+	//書き込むためのアドレスを取得
+	transformationMatrixResourceSprite->Map(0, nullptr, reinterpret_cast<void**>(&transformationMatrixDataSprite));
+	//単位行列を書き込んでいく
+	*transformationMatrixDataSprite = Matrix4x4::MakeIdentity4x4();
+
 	//ビューポート
 	D3D12_VIEWPORT viewport{};
 	//クライアント領域のサイズと一緒にして画面全体に表示
@@ -777,6 +814,9 @@ if (SUCCEEDED(device->QueryInterface(IID_PPV_ARGS(&infoQueue)))) {
 	Transform transform{ {1.0f,1.0f,1.0f},{0.0f,0.0f,0.0f},{0.0f,0.0f,0.0f} };
 
 	Transform cameraTransform{ {1.0f,1.0f,1.0f},{0.0f,0.0f,0.0f},{0.0f,0.0f,-5.0f} };
+	
+	//CPUで動かす用のTransformを作る
+	Transform transformSprite{ {1.0f,1.0f,1.0f},{0.0f,0.0f,0.0f},{0.0f,0.0f,0.0f} };
 
 	
 	MSG msg{};
@@ -792,7 +832,6 @@ if (SUCCEEDED(device->QueryInterface(IID_PPV_ARGS(&infoQueue)))) {
 			ImGui_ImplWin32_NewFrame();
 			ImGui::NewFrame();
 
-
 			//ゲーム処理
 
 			//開発用UIの処理。実際に開発のUIを出す場合はここをゲーム固有の処理に置き換える
@@ -806,6 +845,14 @@ if (SUCCEEDED(device->QueryInterface(IID_PPV_ARGS(&infoQueue)))) {
 			Matrix4x4 worldViewProjectionMatrix = Matrix4x4::Multiply(worldMatrix, Matrix4x4::Multiply(viewMatrix, projectionMatrix));
 			
 			*wvpData = worldViewProjectionMatrix;
+
+			//Sprite用のWorldProjectionMatrixを作る
+			Matrix4x4 worldMatrixSprite = Matrix4x4::MakeAffinMatrix(transformSprite.scale, transformSprite.rotate, transformSprite.translate);
+			Matrix4x4 viewMatrixSprite = Matrix4x4::MakeIdentity4x4();
+			Matrix4x4 projectionMatrixSprite = Matrix4x4::MakeOrthographicMatrix(0.0f, 0.0f, float(kClientWidth), float(kClientHeight), 0.0f, 100.0f);
+			Matrix4x4 worldViewProjectionMatrixSprite = Matrix4x4::Multiply(worldMatrixSprite, Matrix4x4::Multiply(viewMatrixSprite, projectionMatrixSprite));
+
+			*transformationMatrixDataSprite = worldViewProjectionMatrixSprite;
 
 			//ゲームの処理終了
 			
@@ -863,6 +910,12 @@ if (SUCCEEDED(device->QueryInterface(IID_PPV_ARGS(&infoQueue)))) {
 			//SRVのDescriptorTableの先頭に設定。2はrootParameter[2]である
 			commandList->SetGraphicsRootDescriptorTable(2, textureSrvHandleGPU);
 			//描画!!!!（DrawCall/ドローコール）。3頂点で1つのインスタンス。インスタンスについては今後
+			commandList->DrawInstanced(6, 1, 0, 0);
+			//Spriteの描画。変更に必要なものだけ変更する
+			commandList->IASetVertexBuffers(0, 1, &vertexBufferViewSprite); // VBVを設定
+			//TransformationMatrixCBufferの場所を設定
+			commandList->SetGraphicsRootConstantBufferView(1, transformationMatrixResourceSprite->GetGPUVirtualAddress());
+			//描画!!!!（DrawCall/ドローコール）
 			commandList->DrawInstanced(6, 1, 0, 0);
 
 			//実際のcommandListのImGuiの描画コマンドを積む。描画処理の終わったタイミング
@@ -946,6 +999,8 @@ if (SUCCEEDED(device->QueryInterface(IID_PPV_ARGS(&infoQueue)))) {
 	intermediateResource->Release();
 	depthStencilResource->Release();
 	dsvDescriptorHeap->Release();
+	vertexResourceSphere->Release();
+	transformationMatrixResourceSprite->Release();
 #ifdef _DEBUG
 	debugController->Release();
 #endif // _DEBUG
