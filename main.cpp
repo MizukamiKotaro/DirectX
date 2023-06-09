@@ -22,6 +22,8 @@ extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hwnd, UINT msg
 #include "externals/DirectXTex/d3dx12.h"
 #include <vector>
 
+#include<cmath>
+
 //Transform.h的なの作るまではとりあえずこれで
 struct Transform {
 	Vector3 scale;
@@ -369,6 +371,7 @@ if (SUCCEEDED(D3D12GetDebugInterface(IID_PPV_ARGS(&debugController)))) {
 	//ウィンドウを表示する
 	ShowWindow(hwnd, SW_SHOW);
 
+
 	//DXGIファクトリーの生成
 	IDXGIFactory7* dxgiFactory = nullptr;
 	//HRESULはwindows系のエラーコードであり、
@@ -669,7 +672,7 @@ if (SUCCEEDED(device->QueryInterface(IID_PPV_ARGS(&infoQueue)))) {
 
 	//VertexResourceを生成する
 	//実際に頂点リソースを作る
-	ID3D12Resource* vertexResource = CreateBufferResource(device, sizeof(VertexData) * 6);
+	ID3D12Resource* vertexResource = CreateBufferResource(device, sizeof(VertexData) * 16 * 16 * 6);
 
 	//マテリアル用のリソースを作る。今回はcolor1つ分を用意する
 	ID3D12Resource* materialResource = CreateBufferResource(device, sizeof(VertexData));
@@ -714,48 +717,110 @@ if (SUCCEEDED(device->QueryInterface(IID_PPV_ARGS(&infoQueue)))) {
 	//リソースの先頭のアドレスから使う
 	vertexBufferView.BufferLocation = vertexResource->GetGPUVirtualAddress();
 	//使用するリソースのサイズは頂点3つ分のサイズ
-	vertexBufferView.SizeInBytes = sizeof(VertexData) * 6;
+	vertexBufferView.SizeInBytes = sizeof(VertexData) * 16 * 16 * 6;
 	//頂点当たりのサイズ
 	vertexBufferView.StrideInBytes = sizeof(VertexData);
 
 	//Resourceにデータを書き込む
 	//頂点リソースにデータを書き込む
-	VertexData* vertexDate = nullptr;
+	VertexData* vertexData = nullptr;
 	//書き込むためのアドレスを取得
-	vertexResource->Map(0, nullptr, reinterpret_cast<void**>(&vertexDate));
-	//左下
-	vertexDate[0].position = { -0.5f,-0.5f,0.0f,1.0f };
-	vertexDate[0].texcoord = { 0.0f,1.0f };
-	//上
-	vertexDate[1].position = { 0.0f,0.5f,0.0f,1.0f };
-	vertexDate[1].texcoord = { 0.5f,0.0f };
-	//右下
-	vertexDate[2].position = { 0.5f,-0.5f,0.0f,1.0f };
-	vertexDate[2].texcoord = { 1.0f,1.0f };
+	vertexResource->Map(0, nullptr, reinterpret_cast<void**>(&vertexData));
+	
+	uint32_t kSubdivision = 16;
+	float pi = 3.141592f;
+	const float kLonEvery = pi * 2.0f / float(kSubdivision);
+	const float kLatEvery = pi / float(kSubdivision);
+	const float kEvery = 1.0f / float(kSubdivision);
 
-	//左下
-	vertexDate[3].position = { -0.5f,-0.5f,0.5f,1.0f };
-	vertexDate[3].texcoord = { 0.0f,1.0f };
-	//上
-	vertexDate[4].position = { 0.0f,0.0f,0.0f,1.0f };
-	vertexDate[4].texcoord = { 0.5f,0.0f };
-	//右下
-	vertexDate[5].position = { 0.5f,-0.5f,-0.5f,1.0f };
-	vertexDate[5].texcoord = { 1.0f,1.0f };
+	for (uint32_t latIndex = 0; latIndex < kSubdivision; latIndex++) {
+		float lat = -pi / 2.0f + kLatEvery * latIndex;
+		
+		for (uint32_t lonIndex = 0; lonIndex < kSubdivision; lonIndex++) {
+			float lon = lonIndex * kLonEvery;
+			uint32_t start = (latIndex * kSubdivision + lonIndex) * 6;
+
+			float u = float(lonIndex) / float(kSubdivision);
+			float v = 1.0f - float(latIndex) / float(kSubdivision);
+
+			//左下
+			vertexData[start].position.x = std::cos(lat) * std::cos(lon);
+			vertexData[start].position.y = std::sin(lat);
+			vertexData[start].position.z = std::cos(lat) * std::sin(lon);
+			vertexData[start].position.w = 1.0f;
+			vertexData[start].texcoord.x = u;
+			vertexData[start].texcoord.y = v;
+			//左上
+			vertexData[start + 1].position.x = std::cos(lat + kLatEvery) * std::cos(lon);
+			vertexData[start + 1].position.y = std::sin(lat + kLatEvery);
+			vertexData[start + 1].position.z = std::cos(lat + kLatEvery) * std::sin(lon);
+			vertexData[start + 1].position.w = 1.0f;
+			vertexData[start + 1].texcoord.x = u;
+			vertexData[start + 1].texcoord.y = v - kEvery;
+			//右下
+			vertexData[start + 2].position.x = std::cos(lat) * std::cos(lon + kLonEvery);
+			vertexData[start + 2].position.y = std::sin(lat);
+			vertexData[start + 2].position.z = std::cos(lat) * std::sin(lon + kLonEvery);
+			vertexData[start + 2].position.w = 1.0f;
+			vertexData[start + 2].texcoord.x = u + kEvery;
+			vertexData[start + 2].texcoord.y = v;
+			//右上
+			vertexData[start + 3].position.x = std::cos(lat + kLatEvery) * std::cos(lon + kLonEvery);
+			vertexData[start + 3].position.y = std::sin(lat + kLatEvery);
+			vertexData[start + 3].position.z = std::cos(lat + kLatEvery) * std::sin(lon + kLonEvery);
+			vertexData[start + 3].position.w = 1.0f;
+			vertexData[start + 3].texcoord.x = u + kEvery;
+			vertexData[start + 3].texcoord.y = v - kEvery;
+			//右下
+			vertexData[start + 4].position.x = std::cos(lat) * std::cos(lon + kLonEvery);
+			vertexData[start + 4].position.y = std::sin(lat);
+			vertexData[start + 4].position.z = std::cos(lat) * std::sin(lon + kLonEvery);
+			vertexData[start + 4].position.w = 1.0f;
+			vertexData[start + 4].texcoord.x = u + kEvery;
+			vertexData[start + 4].texcoord.y = v;
+			//左上
+			vertexData[start + 5].position.x = std::cos(lat + kLatEvery) * std::cos(lon);
+			vertexData[start + 5].position.y = std::sin(lat + kLatEvery);
+			vertexData[start + 5].position.z = std::cos(lat + kLatEvery) * std::sin(lon);
+			vertexData[start + 5].position.w = 1.0f;
+			vertexData[start + 5].texcoord.x = u;
+			vertexData[start + 5].texcoord.y = v - kEvery;
+		}
+	}
+
+	////左下
+	//vertexDate[0].position = { -0.5f,-0.5f,0.0f,1.0f };
+	//vertexDate[0].texcoord = { 0.0f,1.0f };
+	////上
+	//vertexDate[1].position = { 0.0f,0.5f,0.0f,1.0f };
+	//vertexDate[1].texcoord = { 0.5f,0.0f };
+	////右下
+	//vertexDate[2].position = { 0.5f,-0.5f,0.0f,1.0f };
+	//vertexDate[2].texcoord = { 1.0f,1.0f };
+
+	////左下
+	//vertexDate[3].position = { -0.5f,-0.5f,0.5f,1.0f };
+	//vertexDate[3].texcoord = { 0.0f,1.0f };
+	////上
+	//vertexDate[4].position = { 0.0f,0.0f,0.0f,1.0f };
+	//vertexDate[4].texcoord = { 0.5f,0.0f };
+	////右下
+	//vertexDate[5].position = { 0.5f,-0.5f,-0.5f,1.0f };
+	//vertexDate[5].texcoord = { 1.0f,1.0f };
 
 	//Sprite用の頂点リソースを作る
-	ID3D12Resource* vertexResourceSphere = CreateBufferResource(device, sizeof(VertexData) * 6);
+	ID3D12Resource* vertexResourceSprite = CreateBufferResource(device, sizeof(VertexData) * 6);
 	//頂点バッファーを作成する
 	D3D12_VERTEX_BUFFER_VIEW vertexBufferViewSprite{};
 	//リソースの先頭アドレスから使う
-	vertexBufferViewSprite.BufferLocation = vertexResourceSphere->GetGPUVirtualAddress();
+	vertexBufferViewSprite.BufferLocation = vertexResourceSprite->GetGPUVirtualAddress();
 	//使用するリソースのサイズは頂点6つ分のサイズ
 	vertexBufferViewSprite.SizeInBytes = sizeof(VertexData) * 6;
 	//1頂点あたりのサイズ
 	vertexBufferViewSprite.StrideInBytes = sizeof(VertexData);
 
 	VertexData* vertexDataSprite = nullptr;
-	vertexResourceSphere->Map(0, nullptr, reinterpret_cast<void**>(&vertexDataSprite));
+	vertexResourceSprite->Map(0, nullptr, reinterpret_cast<void**>(&vertexDataSprite));
 	//1枚目の三角形
 	vertexDataSprite[0].position = { 0.0f,360.0f,0.0f,1.0f }; // 左下
 	vertexDataSprite[0].texcoord = { 0.0f,1.0f }; 
@@ -910,7 +975,7 @@ if (SUCCEEDED(device->QueryInterface(IID_PPV_ARGS(&infoQueue)))) {
 			//SRVのDescriptorTableの先頭に設定。2はrootParameter[2]である
 			commandList->SetGraphicsRootDescriptorTable(2, textureSrvHandleGPU);
 			//描画!!!!（DrawCall/ドローコール）。3頂点で1つのインスタンス。インスタンスについては今後
-			commandList->DrawInstanced(6, 1, 0, 0);
+			commandList->DrawInstanced(16 * 16 * 6, 1, 0, 0);
 			//Spriteの描画。変更に必要なものだけ変更する
 			commandList->IASetVertexBuffers(0, 1, &vertexBufferViewSprite); // VBVを設定
 			//TransformationMatrixCBufferの場所を設定
@@ -999,7 +1064,7 @@ if (SUCCEEDED(device->QueryInterface(IID_PPV_ARGS(&infoQueue)))) {
 	intermediateResource->Release();
 	depthStencilResource->Release();
 	dsvDescriptorHeap->Release();
-	vertexResourceSphere->Release();
+	vertexResourceSprite->Release();
 	transformationMatrixResourceSprite->Release();
 #ifdef _DEBUG
 	debugController->Release();
