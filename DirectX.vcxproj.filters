@@ -60,6 +60,12 @@
     <ClCompile Include="calc.cpp">
       <Filter>ソース ファイル\Math</Filter>
     </ClCompile>
+    <ClCompile Include="WinApp.cpp">
+      <Filter>ソース ファイル</Filter>
+    </ClCompile>
+    <ClCompile Include="DebugLog.cpp">
+      <Filter>ソース ファイル</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="Object3d.VS.hlsl" />
@@ -121,6 +127,12 @@
       <Filter>ヘッダー ファイル\include</Filter>
     </ClInclude>
     <ClInclude Include="VertexData.h">
+      <Filter>ヘッダー ファイル\include</Filter>
+    </ClInclude>
+    <ClInclude Include="WinApp.h">
+      <Filter>ヘッダー ファイル\include</Filter>
+    </ClInclude>
+    <ClInclude Include="DebugLog.h">
       <Filter>ヘッダー ファイル\include</Filter>
     </ClInclude>
   </ItemGroup>

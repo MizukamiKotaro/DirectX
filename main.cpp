@@ -1,6 +1,6 @@
 #include<Windows.h>
 #include<cstdint>
-#include <string>
+//#include <string>
 #include<format>
 #include<d3d12.h>
 #include<dxgi1_6.h>
@@ -30,64 +30,8 @@ extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hwnd, UINT msg
 #include "Material.h"
 #include "Light.h"
 
-//ウィンドウプロシャープ
-LRESULT CALLBACK WindowProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam) {
-	if (ImGui_ImplWin32_WndProcHandler(hwnd, msg, wparam, lparam)) {
-		return true;
-	}
-	//メッセージに応じてゲーム固有の処理を行う
-	switch (msg) {
-		//ウィンドウが破棄された
-	case WM_DESTROY:
-		//OSに対して、アプリの終了を伝える
-		PostQuitMessage(0);
-		return 0;
-	}
-
-	//標準のメッセージ処理を行う
-	return DefWindowProc(hwnd, msg, wparam, lparam);
-}
-
-//文字列を格納する
-//std::string str0{ "STRING!!!" };
-//整数を文字列にする
-//std::string str1{ std::to_string(10) };
-
-//出力ウィンドウに文字を出す
-void Log(const std::string& message) {
-	OutputDebugStringA(message.c_str());
-}
-
-//変数から型を推測してくれる
-//Log(std::format("enemyHP:{}, texturePath:{}\n", enemyHp, texturPath));
-
-std::wstring ConvertString(const std::string& str) {
-	if (str.empty()) {
-		return std::wstring();
-	}
-
-	auto sizeNeeded = MultiByteToWideChar(CP_UTF8, 0, reinterpret_cast<const char*>(&str[0]), static_cast<int>(str.size()), NULL, 0);
-	if (sizeNeeded == 0) {
-		return std::wstring();
-	}
-	std::wstring result(sizeNeeded, 0);
-	MultiByteToWideChar(CP_UTF8, 0, reinterpret_cast<const char*>(&str[0]), static_cast<int>(str.size()), &result[0], sizeNeeded);
-	return result;
-}
-
-std::string ConvertString(const std::wstring& str) {
-	if (str.empty()) {
-		return std::string();
-	}
-
-	auto sizeNeeded = WideCharToMultiByte(CP_UTF8, 0, str.data(), static_cast<int>(str.size()), NULL, 0, NULL, NULL);
-	if (sizeNeeded == 0) {
-		return std::string();
-	}
-	std::string result(sizeNeeded, 0);
-	WideCharToMultiByte(CP_UTF8, 0, str.data(), static_cast<int>(str.size()), result.data(), sizeNeeded, NULL, NULL);
-	return result;
-}
+#include "WinApp.h"
+#include "DebugLog.h"
 
 //コンパイル用関数
 IDxcBlob* CompileShader(
@@ -102,7 +46,7 @@ IDxcBlob* CompileShader(
 {
 	// 1. hlslファイルを読む
 	//これからシェーダーをコンパイルする旨をログに出す
-	Log(ConvertString(std::format(L"Begin CompileShader,path:{},profile:{}\n", filePath, profile)));
+	DebugLog::Log(DebugLog::ConvertString(std::format(L"Begin CompileShader,path:{},profile:{}\n", filePath, profile)));
 	//hlslファイルを読む
 	IDxcBlobEncoding* shaderSource = nullptr;
 	HRESULT hr = dxcUtils->LoadFile(filePath.c_str(), nullptr, &shaderSource);
@@ -139,7 +83,7 @@ IDxcBlob* CompileShader(
 	IDxcBlobUtf8* shaderError = nullptr;
 	shaderResult->GetOutput(DXC_OUT_ERRORS, IID_PPV_ARGS(&shaderError), nullptr);
 	if (shaderError != nullptr && shaderError->GetStringLength() != 0) {
-		Log(shaderError->GetStringPointer());
+		DebugLog::Log(shaderError->GetStringPointer());
 		assert(false);
 	}
 
@@ -149,7 +93,7 @@ IDxcBlob* CompileShader(
 	hr = shaderResult->GetOutput(DXC_OUT_OBJECT, IID_PPV_ARGS(&shaderBlob), nullptr);
 	assert(SUCCEEDED(hr));
 	//成功したログを出す
-	Log(ConvertString(std::format(L"Compile Succeeded, path:{}, prefile:{}\n", filePath, profile)));
+	DebugLog::Log(DebugLog::ConvertString(std::format(L"Compile Succeeded, path:{}, prefile:{}\n", filePath, profile)));
 	//もう使わないリソースを開放
 	shaderSource->Release();
 	shaderResult->Release();
@@ -202,7 +146,7 @@ ID3D12Resource* CreateBufferResource(ID3D12Device* device, size_t sizeInBytes) {
 DirectX::ScratchImage LoadTexture(const std::string& filePath) {
 	//デスクトップファイルを読んでプログラムで使えるようにする
 	DirectX::ScratchImage image{};
-	std::wstring filePathW = ConvertString(filePath);
+	std::wstring filePathW = DebugLog::ConvertString(filePath);
 	HRESULT hr = DirectX::LoadFromWICFile(filePathW.c_str(), DirectX::WIC_FLAGS_FORCE_SRGB, nullptr, image);
 	assert(SUCCEEDED(hr));
 
@@ -316,69 +260,24 @@ D3D12_GPU_DESCRIPTOR_HANDLE GetGPUDescriptorHandle(ID3D12DescriptorHeap* descrip
 	handleGPU.ptr += (descriptorSize * index);
 	return handleGPU;
 }
-//bool DepthFunc(float currz, float prevz) {
-//	return currz <= prevz;
-//}
+
 
 //Windowsアプリでのエントリーポイント(main関数)
 int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR lpCmdLine, _In_ int nShowCmd) {
-	//出力ウィンドウへの文字出力
-	//OutputDebugStringA("Hello,DirectX!\n");
 
-	//COM(Component Object Model)の初期化
-	CoInitializeEx(0, COINIT_MULTITHREADED);
+	WinApp* winApp= new WinApp();
 
-	WNDCLASS wc{};
-	//ウィンドウプロシージャ
-	wc.lpfnWndProc = WindowProc;
-	//ウィンドウクラス名(なんでも良い)
-	wc.lpszClassName = L"CG2WindowClass";
-	//インスタンスハンドル
-	wc.hInstance = GetModuleHandle(nullptr);
-	//カーソル
-	wc.hCursor = LoadCursor(nullptr, IDC_ARROW);
-
-	//ウィンドウクラスを登録する
-	RegisterClass(&wc);
-
-
-	//クライアント領域のサイズ
-	const int32_t kClientWidth = 1280;
-	const int32_t kClientHeight = 720;
-
-	//ウィンドウサイズを表す構造体にクライアント領域を入れる
-	RECT wrc = { 0,0,kClientWidth,kClientHeight };
-
-	//クライアント領域を元に実際のサイズにwrcを変更してもらう
-	AdjustWindowRect(&wrc, WS_OVERLAPPEDWINDOW, false);
-
-	//ウィンドウの生成
-	HWND hwnd = CreateWindow(
-		wc.lpszClassName,      // 利用するクラス名
-		L"CG2",	               // タイトルバーの文字(何でもいい)
-		WS_OVERLAPPEDWINDOW,   // よく見るウィンドウスタイル
-		CW_USEDEFAULT,         // 表示x座標(windowsに任せる)
-		CW_USEDEFAULT,         // 表示y座標(windowsに任せる)
-		wrc.right - wrc.left,  // ウィンドウ横幅
-		wrc.bottom - wrc.top,  // ウィンドウ縦幅
-		nullptr,               // 親ウィンドウハンドル
-		nullptr,               // メニューハンドル
-		wc.hInstance,          // インスタンスハンドル
-		nullptr);              // オプション
+	winApp->CreateGameWindow();
 
 #ifdef _DEBUG
-ID3D12Debug1* debugController = nullptr;
-if (SUCCEEDED(D3D12GetDebugInterface(IID_PPV_ARGS(&debugController)))) {
-	//デバッグレイヤーを有効にする
-	debugController->EnableDebugLayer();
-	//さらにGPU側でもチェックを行うようにする
-	debugController->SetEnableGPUBasedValidation(TRUE);
-}
+	ID3D12Debug1* debugController = nullptr;
+	if (SUCCEEDED(D3D12GetDebugInterface(IID_PPV_ARGS(&debugController)))) {
+		//デバッグレイヤーを有効にする
+		debugController->EnableDebugLayer();
+		//さらにGPU側でもチェックを行うようにする
+		debugController->SetEnableGPUBasedValidation(TRUE);
+	}
 #endif // DEBUG
-
-	//ウィンドウを表示する
-	ShowWindow(hwnd, SW_SHOW);
-
 
 	//DXGIファクトリーの生成
 	IDXGIFactory7* dxgiFactory = nullptr;
@@ -401,7 +300,7 @@ if (SUCCEEDED(D3D12GetDebugInterface(IID_PPV_ARGS(&debugController)))) {
 		//ソフトウェアアダプタでなければ採用
 		if (!(adapterDesc.Flags & DXGI_ADAPTER_FLAG3_SOFTWARE)) {
 			//採用したアダプタの情報をログに出力。wstringの方なので注意
-			Log(ConvertString(std::format(L"Use Adapter : {}\n", adapterDesc.Description)));
+			DebugLog::Log(DebugLog::ConvertString(std::format(L"Use Adapter : {}\n", adapterDesc.Description)));
 			break;
 		}
 		useAdapter = nullptr;//ソフトウェアの場合見なかったことにする
@@ -422,13 +321,13 @@ if (SUCCEEDED(D3D12GetDebugInterface(IID_PPV_ARGS(&debugController)))) {
 		//指定した機能レベルでデバイスが生成関たかを確認
 		if (SUCCEEDED(hr)) {
 			//生成できたのでログ出力を行ってループを抜ける
-			Log(std::format("FeatureLevel : {}\n", featureLevelStrings[i]));
+			DebugLog::Log(std::format("FeatureLevel : {}\n", featureLevelStrings[i]));
 			break;
 		}
 	}
 	//デバイスの生成がうまくいかなかったので起動できない
 	assert(device != nullptr);
-	Log("Complete create D3D12Device!!!\n");// 初期化完了のログを出す
+	DebugLog::Log("Complete create D3D12Device!!!\n");// 初期化完了のログを出す
 
 #ifdef _DEBUG
 ID3D12InfoQueue* infoQueue = nullptr;
@@ -483,15 +382,15 @@ if (SUCCEEDED(device->QueryInterface(IID_PPV_ARGS(&infoQueue)))) {
 	//スワップチェーンを生成する
 	IDXGISwapChain4* swapChain = nullptr;
 	DXGI_SWAP_CHAIN_DESC1 swapChainDesc{};
-	swapChainDesc.Width = kClientWidth;	  //画面の幅。ウィンドウのクライアント領域を同じものにしておく
-	swapChainDesc.Height = kClientHeight; //画面の高さ。ウィンドウのクライアント領域を同じものにしておく
+	swapChainDesc.Width = WinApp::kWindowWidth;	  //画面の幅。ウィンドウのクライアント領域を同じものにしておく
+	swapChainDesc.Height = WinApp::kWindowHeight; //画面の高さ。ウィンドウのクライアント領域を同じものにしておく
 	swapChainDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM; //色の形式
 	swapChainDesc.SampleDesc.Count = 1; //マルチサンプルしない
 	swapChainDesc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT; //描画のターゲットとして利用
 	swapChainDesc.BufferCount = 2; //ダブルバッファ
 	swapChainDesc.SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD; //モニタにうつしたら中身破棄
 	//コマンドキュー、ウィンドウハンドル、設定を渡して生成する
-	hr = dxgiFactory->CreateSwapChainForHwnd(commandQueue, hwnd, &swapChainDesc, nullptr, nullptr, reinterpret_cast<IDXGISwapChain1**>(&swapChain));
+	hr = dxgiFactory->CreateSwapChainForHwnd(commandQueue, winApp->GetHwnd(), &swapChainDesc, nullptr, nullptr, reinterpret_cast<IDXGISwapChain1**>(&swapChain));
 	assert(SUCCEEDED(hr));
 
 	//ディスクリプタヒープの生成
@@ -527,7 +426,7 @@ if (SUCCEEDED(device->QueryInterface(IID_PPV_ARGS(&infoQueue)))) {
 	device->CreateRenderTargetView(swapChainResources[1], &rtvDesc, rtvHandles[1]);
 
 	//DepthStencilTextureをウィンドウのサイズで作成
-	ID3D12Resource* depthStencilResource = CreateDepthStencilTextureResource(device, kClientWidth, kClientHeight);
+	ID3D12Resource* depthStencilResource = CreateDepthStencilTextureResource(device, WinApp::kWindowWidth, WinApp::kWindowHeight);
 	//DSVの設定
 	D3D12_DEPTH_STENCIL_VIEW_DESC dsvDesc{};
 	dsvDesc.Format = DXGI_FORMAT_D24_UNORM_S8_UINT; // Format。基本的にはResourceに合わせる
@@ -607,7 +506,7 @@ if (SUCCEEDED(device->QueryInterface(IID_PPV_ARGS(&infoQueue)))) {
 	ID3DBlob* errorBlob = nullptr;
 	hr = D3D12SerializeRootSignature(&descriptionRootSignature, D3D_ROOT_SIGNATURE_VERSION_1, &signatureBlob, &errorBlob);
 	if (FAILED(hr)) {
-		Log(reinterpret_cast<char*>(errorBlob->GetBufferPointer()));
+		DebugLog::Log(reinterpret_cast<char*>(errorBlob->GetBufferPointer()));
 		assert(false);
 	}
 	//バイナリを元に生成
@@ -925,8 +824,8 @@ if (SUCCEEDED(device->QueryInterface(IID_PPV_ARGS(&infoQueue)))) {
 	//ビューポート
 	D3D12_VIEWPORT viewport{};
 	//クライアント領域のサイズと一緒にして画面全体に表示
-	viewport.Width = kClientWidth;
-	viewport.Height = kClientHeight;
+	viewport.Width = WinApp::kWindowWidth;
+	viewport.Height = WinApp::kWindowHeight;
 	viewport.TopLeftX = 0;
 	viewport.TopLeftY = 0;
 	viewport.MinDepth = 0.0f;
@@ -936,15 +835,15 @@ if (SUCCEEDED(device->QueryInterface(IID_PPV_ARGS(&infoQueue)))) {
 	D3D12_RECT scissorRect{};
 	//基本的にビューポートと同じ矩形が構成されるようにする
 	scissorRect.left = 0;
-	scissorRect.right = kClientWidth;
+	scissorRect.right = WinApp::kWindowWidth;
 	scissorRect.top = 0;
-	scissorRect.bottom = kClientHeight;
+	scissorRect.bottom = WinApp::kWindowHeight;
 
 	//ImGuiの初期化
 	IMGUI_CHECKVERSION();
 	ImGui::CreateContext();
 	ImGui::StyleColorsDark();
-	ImGui_ImplWin32_Init(hwnd);
+	ImGui_ImplWin32_Init(winApp->GetHwnd());
 	ImGui_ImplDX12_Init(device,
 		swapChainDesc.BufferCount,
 		rtvDesc.Format,
@@ -990,7 +889,7 @@ if (SUCCEEDED(device->QueryInterface(IID_PPV_ARGS(&infoQueue)))) {
 			Matrix4x4 worldMatrix = Matrix4x4::MakeAffinMatrix(transform.scale, transform.rotate, transform.translate);
 			Matrix4x4 cameraMatrix = Matrix4x4::MakeAffinMatrix(cameraTransform.scale, cameraTransform.rotate, cameraTransform.translate);
 			Matrix4x4 viewMatrix = Matrix4x4::Inverse(cameraMatrix);
-			Matrix4x4 projectionMatrix = Matrix4x4::MakePerspectiveFovMatrix(0.45f, float(kClientWidth) / float(kClientHeight), 0.1f, 100.0f);
+			Matrix4x4 projectionMatrix = Matrix4x4::MakePerspectiveFovMatrix(0.45f, float(WinApp::kWindowWidth) / float(WinApp::kWindowHeight), 0.1f, 100.0f);
 			Matrix4x4 worldViewProjectionMatrix = Matrix4x4::Multiply(worldMatrix, Matrix4x4::Multiply(viewMatrix, projectionMatrix));
 			
 			transformationMatrixData->WVP = worldViewProjectionMatrix;
@@ -999,7 +898,7 @@ if (SUCCEEDED(device->QueryInterface(IID_PPV_ARGS(&infoQueue)))) {
 			//Sprite用のWorldProjectionMatrixを作る
 			Matrix4x4 worldMatrixSprite = Matrix4x4::MakeAffinMatrix(transformSprite.scale, transformSprite.rotate, transformSprite.translate);
 			Matrix4x4 viewMatrixSprite = Matrix4x4::MakeIdentity4x4();
-			Matrix4x4 projectionMatrixSprite = Matrix4x4::MakeOrthographicMatrix(0.0f, 0.0f, float(kClientWidth), float(kClientHeight), 0.0f, 100.0f);
+			Matrix4x4 projectionMatrixSprite = Matrix4x4::MakeOrthographicMatrix(0.0f, 0.0f, float(WinApp::kWindowWidth), float(WinApp::kWindowHeight), 0.0f, 100.0f);
 			Matrix4x4 worldViewProjectionMatrixSprite = Matrix4x4::Multiply(worldMatrixSprite, Matrix4x4::Multiply(viewMatrixSprite, projectionMatrixSprite));
 
 			transformationMatrixDataSprite->WVP = worldViewProjectionMatrixSprite;
@@ -1167,7 +1066,7 @@ if (SUCCEEDED(device->QueryInterface(IID_PPV_ARGS(&infoQueue)))) {
 #ifdef _DEBUG
 	debugController->Release();
 #endif // _DEBUG
-	CloseWindow(hwnd);
+	CloseWindow(winApp->GetHwnd());
 
 	//リソースリークチェック
 	IDXGIDebug1* debug;
