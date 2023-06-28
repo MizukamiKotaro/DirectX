@@ -376,7 +376,6 @@ if (SUCCEEDED(D3D12GetDebugInterface(IID_PPV_ARGS(&debugController)))) {
 }
 #endif // DEBUG
 
-
 	//ウィンドウを表示する
 	ShowWindow(hwnd, SW_SHOW);
 
