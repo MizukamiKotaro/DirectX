@@ -81,7 +81,7 @@ public:
 
 		tmp.x = this->x / a;
 		tmp.y = this->y / a;
-		tmp.z = this->y / a;
+		tmp.z = this->z / a;
 		return tmp;
 	}
 	void operator/=(float a) {

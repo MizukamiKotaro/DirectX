@@ -714,7 +714,7 @@ if (SUCCEEDED(device->QueryInterface(IID_PPV_ARGS(&infoQueue)))) {
 	ID3D12Resource* materialResource = CreateBufferResource(device, sizeof(Material));
 	//マテリアルデータを書き込む
 	Material* materialData = nullptr;
-	//書き込むためのアドレスを取得\l
+	//書き込むためのアドレスを取得
 	materialResource->Map(0, nullptr, reinterpret_cast<void**>(&materialData));
 	//今回は赤を書き込んでいる
 	*materialData = { Vector4(1.0f, 1.0f, 1.0f, 1.0f) , true };
