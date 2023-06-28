@@ -22,6 +22,9 @@
     <Filter Include="ヘッダー ファイル\Math">
       <UniqueIdentifier>{8cfe2ce3-efbf-4740-8be4-81978b9446d3}</UniqueIdentifier>
     </Filter>
+    <Filter Include="ヘッダー ファイル\include">
+      <UniqueIdentifier>{31b155cc-5f6a-4841-a856-a300be5e580e}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -87,9 +90,6 @@
     <ClInclude Include="externals\imgui\imstb_truetype.h">
       <Filter>imgui</Filter>
     </ClInclude>
-    <ClInclude Include="VertexData.h">
-      <Filter>ヘッダー ファイル</Filter>
-    </ClInclude>
     <ClInclude Include="Matrix3x3.h">
       <Filter>ヘッダー ファイル\Math</Filter>
     </ClInclude>
@@ -108,17 +108,20 @@
     <ClInclude Include="calc.h">
       <Filter>ヘッダー ファイル\Math</Filter>
     </ClInclude>
-    <ClInclude Include="Transform.h">
-      <Filter>ヘッダー ファイル</Filter>
-    </ClInclude>
-    <ClInclude Include="TransformationMatrix.h">
-      <Filter>ヘッダー ファイル</Filter>
+    <ClInclude Include="Light.h">
+      <Filter>ヘッダー ファイル\include</Filter>
     </ClInclude>
     <ClInclude Include="Material.h">
-      <Filter>ヘッダー ファイル</Filter>
+      <Filter>ヘッダー ファイル\include</Filter>
     </ClInclude>
-    <ClInclude Include="Light.h">
-      <Filter>ヘッダー ファイル</Filter>
+    <ClInclude Include="Transform.h">
+      <Filter>ヘッダー ファイル\include</Filter>
+    </ClInclude>
+    <ClInclude Include="TransformationMatrix.h">
+      <Filter>ヘッダー ファイル\include</Filter>
+    </ClInclude>
+    <ClInclude Include="VertexData.h">
+      <Filter>ヘッダー ファイル\include</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
