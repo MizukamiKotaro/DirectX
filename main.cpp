@@ -25,30 +25,10 @@ extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hwnd, UINT msg
 
 #include<cmath>
 
-//Transform.h的なの作るまではとりあえずこれで
-struct Transform {
-	Vector3 scale;
-	Vector3 rotate;
-	Vector3 translate;
-};
-//PS.hlslにも
-struct Material {
-	Vector4 color;
-	int32_t enableLighting;
-};
-//VS.hlslにも
-struct TransformationMatrix {
-	Matrix4x4 WVP;
-	Matrix4x4 World;
-};
-//平行光源？
-struct DirectionalLight {
-	Vector4 color; // ライトの色
-	Vector3 direction; // ライトの向き
-	float intensity; // 輝度
-};
-
-
+#include "Transform.h"
+#include "TransformationMatrix.h"
+#include "Material.h"
+#include "Light.h"
 
 //ウィンドウプロシャープ
 LRESULT CALLBACK WindowProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam) {

@@ -1,7 +1,7 @@
 #pragma once
 #include "Vector2.h"
 
-class Matrix3x3 {
+struct Matrix3x3 {
 public:
 	static Matrix3x3 Add(const Matrix3x3 m1, const Matrix3x3& m2);
 

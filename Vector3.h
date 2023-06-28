@@ -3,24 +3,8 @@
 /// <summary>
 /// 3次元ベクトル
 /// </summary>
-class Vector3 {
+struct Vector3 {
 public:
-	Vector3() {
-		x = 0;
-		y = 0;
-		z = 0;
-	}
-	Vector3(float x, float y, float z) {
-		this->x = x;
-		this->y = y;
-		this->z = z;
-	}
-
-	Vector3(const Vector3& obj) {
-		x = obj.x;
-		y = obj.y;
-		z = obj.z;
-	}
 
 	// 変換
 	Vector3& operator=(Vector3 obj) {

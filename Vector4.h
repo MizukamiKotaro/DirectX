@@ -1,5 +1,5 @@
 #pragma once
-class Vector4
+struct Vector4
 {
 public:
 	float x;

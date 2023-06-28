@@ -1,7 +1,7 @@
 #pragma once
 #include "Vector3.h"
 
-class Matrix4x4 {
+struct Matrix4x4 {
 public:
 	enum RotateType {
 		kXYZ,
