@@ -8,26 +8,53 @@ DirectXCommon::DirectXCommon() {
 }
 
 DirectXCommon::~DirectXCommon() {
-	
-	//delete winApp_;
+	//winAppが悪さしてる
+	delete winApp_;
 	dxgiFactory_->Release();
 	device_->Release();
 	commandQueue_->Release();
 	commandAllocator_->Release();
 	commandList_->Release();
-	swapChain_->Release();
 	swapChainResources_[0]->Release();
 	swapChainResources_[1]->Release();
+	swapChain_->Release();
 	rtvHeap_->Release();
 	dsvHeap_->Release();
 	CloseHandle(fenceEvent_);
 	fence_->Release();
-
+	
 }
 
 void DirectXCommon::Initialize(WinApp* winApp) {
 
+
 	winApp_ = winApp;
+
+	// DXGIデバイス初期化
+	InitializeDXGIDevice();
+
+	// コマンド関連初期化
+	InitializeCommand();
+
+	// スワップチェーンの生成
+	CreateSwapChain();
+
+	// レンダーターゲット生成
+	CreateFinalRenderTargets();
+
+	// 深度バッファ生成
+	CreateDepthBuffer();
+
+	// フェンス生成
+	CreateFence();
+}
+
+//こっちが仮
+void DirectXCommon::Initialize() {
+
+
+	winApp_ = new WinApp();
+	winApp_->CreateGameWindow();
 
 	// DXGIデバイス初期化
 	InitializeDXGIDevice();
@@ -108,6 +135,8 @@ void DirectXCommon::InitializeDXGIDevice() {
 	//デバイスの生成がうまくいかなかったので起動できない
 	assert(device_ != nullptr);
 	DebugLog::Log("Complete create D3D12Device!!!\n");// 初期化完了のログを出す
+
+	useAdapter->Release();
 }
 
 void DirectXCommon::CreateSwapChain() {

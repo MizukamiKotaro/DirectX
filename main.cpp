@@ -268,9 +268,9 @@ D3D12_GPU_DESCRIPTOR_HANDLE GetGPUDescriptorHandle(ID3D12DescriptorHeap* descrip
 //Windowsアプリでのエントリーポイント(main関数)
 int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR lpCmdLine, _In_ int nShowCmd) {
 
-	WinApp* winApp = new WinApp();
+	/*WinApp* winApp = new WinApp();
 
-	winApp->CreateGameWindow();
+	winApp->CreateGameWindow();*/
 
 #ifdef _DEBUG
 	ID3D12Debug1* debugController = nullptr;
@@ -283,7 +283,8 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR lpCmdLine, _In
 #endif // DEBUG
 
 	DirectXCommon* directXCommon = new DirectXCommon();
-	directXCommon->Initialize(winApp);
+	//directXCommon->Initialize(winApp);
+	directXCommon->Initialize();
 
 	HRESULT hr;
 
@@ -851,7 +852,7 @@ if (SUCCEEDED(directXCommon->device_->QueryInterface(IID_PPV_ARGS(&infoQueue))))
 	IMGUI_CHECKVERSION();
 	ImGui::CreateContext();
 	ImGui::StyleColorsDark();
-	ImGui_ImplWin32_Init(winApp->GetHwnd());
+	ImGui_ImplWin32_Init(directXCommon->winApp_->GetHwnd());
 	/*ImGui_ImplDX12_Init(directXCommon->device_,
 		swapChainDesc.BufferCount,
 		rtvDesc.Format,
@@ -1083,7 +1084,7 @@ if (SUCCEEDED(directXCommon->device_->QueryInterface(IID_PPV_ARGS(&infoQueue))))
 	debugController->Release();
 #endif // _DEBUG
 	//CloseWindow(winApp->GetHwnd());
-	delete winApp;
+	//delete winApp;
 	delete directXCommon;
 
 	//リソースリークチェック

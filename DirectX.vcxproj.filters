@@ -25,6 +25,9 @@
     <Filter Include="ヘッダー ファイル\include">
       <UniqueIdentifier>{31b155cc-5f6a-4841-a856-a300be5e580e}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Adapter">
+      <UniqueIdentifier>{e01ed42e-6c8f-4f3b-b695-1e893b90fa75}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -68,6 +71,9 @@
     </ClCompile>
     <ClCompile Include="DirectXCommon.cpp">
       <Filter>ソース ファイル</Filter>
+    </ClCompile>
+    <ClCompile Include="Kyoko.cpp">
+      <Filter>Adapter</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -140,6 +146,9 @@
     </ClInclude>
     <ClInclude Include="DirectXCommon.h">
       <Filter>ヘッダー ファイル\include</Filter>
+    </ClInclude>
+    <ClInclude Include="Kyoko.h">
+      <Filter>Adapter</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

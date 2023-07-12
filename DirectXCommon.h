@@ -20,6 +20,8 @@ public: // メンバ関数
 	/// </summary>
 	void Initialize(WinApp* winApp);
 
+	void Initialize();
+
 	/// <summary>
 	/// デバイスの取得
 	/// </summary>
@@ -36,18 +38,18 @@ public: //確認のため
 	// ウィンドウズアプリケーション管理
 	WinApp* winApp_;
 
-	IDXGIFactory7* dxgiFactory_;
-	ID3D12Device* device_;
-	ID3D12CommandQueue* commandQueue_;
-	ID3D12CommandAllocator* commandAllocator_;
-	ID3D12GraphicsCommandList* commandList_;
-	IDXGISwapChain4* swapChain_;
-	ID3D12Resource* swapChainResources_[2]; // ダブルバッファだから
-	ID3D12DescriptorHeap* rtvHeap_;
-	ID3D12DescriptorHeap* dsvHeap_;
-	ID3D12Fence* fence_;
+	IDXGIFactory7* dxgiFactory_ = nullptr;
+	ID3D12Device* device_ = nullptr;
+	ID3D12CommandQueue* commandQueue_ = nullptr;
+	ID3D12CommandAllocator* commandAllocator_ = nullptr;
+	ID3D12GraphicsCommandList* commandList_ = nullptr;
+	IDXGISwapChain4* swapChain_ = nullptr;
+	ID3D12Resource* swapChainResources_[2] = {}; // ダブルバッファだから
+	ID3D12DescriptorHeap* rtvHeap_ = nullptr;
+	ID3D12DescriptorHeap* dsvHeap_ = nullptr;
+	ID3D12Fence* fence_ = nullptr;
 	uint64_t fenceValue_ = 0;
-	HANDLE fenceEvent_;
+	HANDLE fenceEvent_ = nullptr;
 
 	// 確認用
 	//RTVを2つ作るのでディスクリプタを2つ用意
