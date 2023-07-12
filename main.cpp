@@ -648,7 +648,7 @@ if (SUCCEEDED(device->QueryInterface(IID_PPV_ARGS(&infoQueue)))) {
 	//リソースの先頭のアドレスから使う
 	vertexBufferView.BufferLocation = vertexResource->GetGPUVirtualAddress();
 	//使用するリソースのサイズは頂点3つ分のサイズ
-	vertexBufferView.SizeInBytes = sizeof(VertexData) * 16 * 16 * 6;
+	vertexBufferView.SizeInBytes = sizeof(VertexData) * 16 * 16 * 4;
 	//頂点当たりのサイズ
 	vertexBufferView.StrideInBytes = sizeof(VertexData);
 
@@ -669,7 +669,7 @@ if (SUCCEEDED(device->QueryInterface(IID_PPV_ARGS(&infoQueue)))) {
 		
 		for (uint32_t lonIndex = 0; lonIndex < kSubdivision; lonIndex++) {
 			float lon = lonIndex * kLonEvery;
-			uint32_t start = (latIndex * kSubdivision + lonIndex) * 6;
+			uint32_t start = (latIndex * kSubdivision + lonIndex) * 4;
 
 			float u = float(lonIndex) / float(kSubdivision);
 			float v = 1.0f - float(latIndex) / float(kSubdivision);
@@ -714,28 +714,55 @@ if (SUCCEEDED(device->QueryInterface(IID_PPV_ARGS(&infoQueue)))) {
 			vertexData[start + 3].normal.x = vertexData[start + 3].position.x;
 			vertexData[start + 3].normal.y = vertexData[start + 3].position.y;
 			vertexData[start + 3].normal.z = vertexData[start + 3].position.z;
-			//右下
-			vertexData[start + 4].position.x = std::cos(lat) * std::cos(lon + kLonEvery);
-			vertexData[start + 4].position.y = std::sin(lat);
-			vertexData[start + 4].position.z = std::cos(lat) * std::sin(lon + kLonEvery);
-			vertexData[start + 4].position.w = 1.0f;
-			vertexData[start + 4].texcoord.x = u + kEvery;
-			vertexData[start + 4].texcoord.y = v;
-			vertexData[start + 4].normal.x = vertexData[start + 4].position.x;
-			vertexData[start + 4].normal.y = vertexData[start + 4].position.y;
-			vertexData[start + 4].normal.z = vertexData[start + 4].position.z;
-			//左上
-			vertexData[start + 5].position.x = std::cos(lat + kLatEvery) * std::cos(lon);
-			vertexData[start + 5].position.y = std::sin(lat + kLatEvery);
-			vertexData[start + 5].position.z = std::cos(lat + kLatEvery) * std::sin(lon);
-			vertexData[start + 5].position.w = 1.0f;
-			vertexData[start + 5].texcoord.x = u;
-			vertexData[start + 5].texcoord.y = v - kEvery;
-			vertexData[start + 5].normal.x = vertexData[start + 5].position.x;
-			vertexData[start + 5].normal.y = vertexData[start + 5].position.y;
-			vertexData[start + 5].normal.z = vertexData[start + 5].position.z;
+			////右下
+			//vertexData[start + 4].position.x = std::cos(lat) * std::cos(lon + kLonEvery);
+			//vertexData[start + 4].position.y = std::sin(lat);
+			//vertexData[start + 4].position.z = std::cos(lat) * std::sin(lon + kLonEvery);
+			//vertexData[start + 4].position.w = 1.0f;
+			//vertexData[start + 4].texcoord.x = u + kEvery;
+			//vertexData[start + 4].texcoord.y = v;
+			//vertexData[start + 4].normal.x = vertexData[start + 4].position.x;
+			//vertexData[start + 4].normal.y = vertexData[start + 4].position.y;
+			//vertexData[start + 4].normal.z = vertexData[start + 4].position.z;
+			////左上
+			//vertexData[start + 5].position.x = std::cos(lat + kLatEvery) * std::cos(lon);
+			//vertexData[start + 5].position.y = std::sin(lat + kLatEvery);
+			//vertexData[start + 5].position.z = std::cos(lat + kLatEvery) * std::sin(lon);
+			//vertexData[start + 5].position.w = 1.0f;
+			//vertexData[start + 5].texcoord.x = u;
+			//vertexData[start + 5].texcoord.y = v - kEvery;
+			//vertexData[start + 5].normal.x = vertexData[start + 5].position.x;
+			//vertexData[start + 5].normal.y = vertexData[start + 5].position.y;
+			//vertexData[start + 5].normal.z = vertexData[start + 5].position.z;
 		}
 	}
+
+	ID3D12Resource* indexResouseSphere = CreateBufferResource(device, sizeof(uint32_t) * 16 * 16 * 6);
+
+	D3D12_INDEX_BUFFER_VIEW indexBufferViewSphere{};
+	indexBufferViewSphere.BufferLocation = indexResouseSphere->GetGPUVirtualAddress();
+	indexBufferViewSphere.SizeInBytes = sizeof(uint32_t) * 16 * 16 * 6;
+	indexBufferViewSphere.Format = DXGI_FORMAT_R32_UINT;
+
+	uint32_t* indexDataSphere = nullptr;
+	indexResouseSphere->Map(0, nullptr, reinterpret_cast<void**>(&indexDataSphere));
+	indexDataSphere[0] = 0; indexDataSphere[1] = 1; indexDataSphere[2] = 2;
+	indexDataSphere[3] = 1; indexDataSphere[4] = 3; indexDataSphere[5] = 2;
+
+
+
+	ID3D12Resource* indexResouseSprite = CreateBufferResource(device, sizeof(uint32_t) * 6);
+
+	D3D12_INDEX_BUFFER_VIEW indexBufferViewSprite{};
+	indexBufferViewSprite.BufferLocation = indexResouseSprite->GetGPUVirtualAddress();
+	indexBufferViewSprite.SizeInBytes = sizeof(uint32_t) * 6;
+	indexBufferViewSprite.Format = DXGI_FORMAT_R32_UINT;
+
+	uint32_t* indexDataSprite = nullptr;
+	indexResouseSprite->Map(0, nullptr, reinterpret_cast<void**>(&indexDataSprite));
+	indexDataSprite[0] = 0; indexDataSprite[1] = 1; indexDataSprite[2] = 2;
+	indexDataSprite[3] = 1; indexDataSprite[4] = 3; indexDataSprite[5] = 2;
+
 
 	////左下
 	//vertexDate[0].position = { -0.5f,-0.5f,0.0f,1.0f };
@@ -758,13 +785,13 @@ if (SUCCEEDED(device->QueryInterface(IID_PPV_ARGS(&infoQueue)))) {
 	//vertexDate[5].texcoord = { 1.0f,1.0f };
 
 	//Sprite用の頂点リソースを作る
-	ID3D12Resource* vertexResourceSprite = CreateBufferResource(device, sizeof(VertexData) * 6);
+	ID3D12Resource* vertexResourceSprite = CreateBufferResource(device, sizeof(VertexData) * 4);
 	//頂点バッファーを作成する
 	D3D12_VERTEX_BUFFER_VIEW vertexBufferViewSprite{};
 	//リソースの先頭アドレスから使う
 	vertexBufferViewSprite.BufferLocation = vertexResourceSprite->GetGPUVirtualAddress();
 	//使用するリソースのサイズは頂点6つ分のサイズ
-	vertexBufferViewSprite.SizeInBytes = sizeof(VertexData) * 6;
+	vertexBufferViewSprite.SizeInBytes = sizeof(VertexData) * 4;
 	//1頂点あたりのサイズ
 	vertexBufferViewSprite.StrideInBytes = sizeof(VertexData);
 
@@ -782,15 +809,15 @@ if (SUCCEEDED(device->QueryInterface(IID_PPV_ARGS(&infoQueue)))) {
 	vertexDataSprite[2].normal = { 0.0f,0.0f, -1.0f };
 
 	//2枚目の三角形
-	vertexDataSprite[3].position = { 0.0f,00.0f,0.0f,1.0f }; // 左上
-	vertexDataSprite[3].texcoord = { 0.0f,0.0f };
+	//vertexDataSprite[3].position = { 0.0f,00.0f,0.0f,1.0f }; // 左上
+	//vertexDataSprite[3].texcoord = { 0.0f,0.0f };
+	//vertexDataSprite[3].normal = { 0.0f,0.0f, -1.0f };
+	vertexDataSprite[3].position = { 640.0f,0.0f,0.0f,1.0f }; // 右上
+	vertexDataSprite[3].texcoord = { 1.0f,0.0f };
 	vertexDataSprite[3].normal = { 0.0f,0.0f, -1.0f };
-	vertexDataSprite[4].position = { 640.0f,0.0f,0.0f,1.0f }; // 右上
-	vertexDataSprite[4].texcoord = { 1.0f,0.0f };
-	vertexDataSprite[4].normal = { 0.0f,0.0f, -1.0f };
-	vertexDataSprite[5].position = { 640.0f,360.0f,0.0f,1.0f }; // 右下
-	vertexDataSprite[5].texcoord = { 1.0f,1.0f };
-	vertexDataSprite[5].normal = { 0.0f,0.0f, -1.0f };
+	//vertexDataSprite[5].position = { 640.0f,360.0f,0.0f,1.0f }; // 右下
+	//vertexDataSprite[5].texcoord = { 1.0f,1.0f };
+	//vertexDataSprite[5].normal = { 0.0f,0.0f, -1.0f };
 
 	//マテリアル用のリソースを作る。今回はcolor1つ分を用意する
 	ID3D12Resource* materialResourceSprite = CreateBufferResource(device, sizeof(Material));
@@ -951,6 +978,8 @@ if (SUCCEEDED(device->QueryInterface(IID_PPV_ARGS(&infoQueue)))) {
 			commandList->SetGraphicsRootSignature(rootSignature);
 			commandList->SetPipelineState(graphicsPipelineState); // PSOを設定
 			commandList->IASetVertexBuffers(0, 1, &vertexBufferView); // VBVを設定
+
+			commandList->IASetIndexBuffer(&indexBufferViewSphere);
 			//形状を設定。PSOに設定しているものとは別。同じものを設定すると考えておけばいい
 			commandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
@@ -964,9 +993,11 @@ if (SUCCEEDED(device->QueryInterface(IID_PPV_ARGS(&infoQueue)))) {
 			//SRVのDescriptorTableの先頭に設定。2はrootParameter[2]である
 			commandList->SetGraphicsRootDescriptorTable(2, useMonsterBall ? textureSrvHandleGPU2 : textureSrvHandleGPU);
 			//描画!!!!（DrawCall/ドローコール）。3頂点で1つのインスタンス。インスタンスについては今後
-			commandList->DrawInstanced(16 * 16 * 6, 1, 0, 0);
+			//commandList->DrawInstanced(16 * 16 * 6, 1, 0, 0);
+			commandList->DrawIndexedInstanced(16 * 16 * 6, 1, 0, 0, 0);
 			//Spriteの描画。変更に必要なものだけ変更する
 			commandList->IASetVertexBuffers(0, 1, &vertexBufferViewSprite); // VBVを設定
+			commandList->IASetIndexBuffer(&indexBufferViewSprite);
 			//マテリアルCBufferの場所を設定
 			commandList->SetGraphicsRootConstantBufferView(0, materialResourceSprite->GetGPUVirtualAddress());
 			//TransformationMatrixCBufferの場所を設定
@@ -974,7 +1005,8 @@ if (SUCCEEDED(device->QueryInterface(IID_PPV_ARGS(&infoQueue)))) {
 
 			commandList->SetGraphicsRootDescriptorTable(2, textureSrvHandleGPU);
 			//描画!!!!（DrawCall/ドローコール）
-			commandList->DrawInstanced(6, 1, 0, 0);
+			//commandList->DrawInstanced(6, 1, 0, 0);
+			commandList->DrawIndexedInstanced(6, 1, 0, 0, 0);
 
 			//実際のcommandListのImGuiの描画コマンドを積む。描画処理の終わったタイミング
 			ImGui_ImplDX12_RenderDrawData(ImGui::GetDrawData(), commandList);
@@ -1063,10 +1095,14 @@ if (SUCCEEDED(device->QueryInterface(IID_PPV_ARGS(&infoQueue)))) {
 	dsvDescriptorHeap->Release();
 	vertexResourceSprite->Release();
 	transformationMatrixResourceSprite->Release();
+	indexResouseSprite->Release();
+	indexResouseSphere->Release();
 #ifdef _DEBUG
 	debugController->Release();
 #endif // _DEBUG
-	CloseWindow(winApp->GetHwnd());
+	//CloseWindow(winApp->GetHwnd());
+	delete winApp;
+
 
 	//リソースリークチェック
 	IDXGIDebug1* debug;
