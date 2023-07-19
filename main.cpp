@@ -33,6 +33,8 @@ extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hwnd, UINT msg
 #include "WinApp.h"
 #include "DebugLog.h"
 
+#include "ModelData.h"
+
 //コンパイル用関数
 IDxcBlob* CompileShader(
 	//compilerするShaderファイルへパス
@@ -584,9 +586,14 @@ if (SUCCEEDED(device->QueryInterface(IID_PPV_ARGS(&infoQueue)))) {
 	hr = device->CreateGraphicsPipelineState(&graphicsPipelineStateDesc, IID_PPV_ARGS(&graphicsPipelineState));
 	assert(SUCCEEDED(hr));
 
+
+	// モデル読み込み
+	ModelData modelData = ModelData::LoadObjeFile("resources", "axis.obj");
+
+
 	//VertexResourceを生成する
 	//実際に頂点リソースを作る
-	ID3D12Resource* vertexResource = CreateBufferResource(device, sizeof(VertexData) * 16 * 16 * 6);
+	ID3D12Resource* vertexResource = CreateBufferResource(device, sizeof(VertexData) * modelData.verteces.size());
 
 	//マテリアル用のリソースを作る。今回はcolor1つ分を用意する
 	ID3D12Resource* materialResource = CreateBufferResource(device, sizeof(Material));
@@ -596,6 +603,7 @@ if (SUCCEEDED(device->QueryInterface(IID_PPV_ARGS(&infoQueue)))) {
 	materialResource->Map(0, nullptr, reinterpret_cast<void**>(&materialData));
 	//今回は赤を書き込んでいる
 	*materialData = { Vector4(1.0f, 1.0f, 1.0f, 1.0f) , true };
+	materialData->uvTransform = Matrix4x4::MakeIdentity4x4();
 
 	//WVP用のリソースを作る。Matrix4x4　1つ分のサイズを用意する
 	ID3D12Resource* transformationMatrixResource = CreateBufferResource(device, sizeof(TransformationMatrix));
@@ -609,7 +617,7 @@ if (SUCCEEDED(device->QueryInterface(IID_PPV_ARGS(&infoQueue)))) {
 	ID3D12Resource* textureResource = CreateTextureResource(device, metadata);
 	ID3D12Resource* intermediateResource = UploadTextureData(textureResource, mipImages, device, commandList);
 
-	DirectX::ScratchImage mipImages2 = LoadTexture("resources/monsterBall.png");
+	DirectX::ScratchImage mipImages2 = LoadTexture(modelData.material.textureFilePath);
 	const DirectX::TexMetadata& metadata2 = mipImages2.GetMetadata();
 	ID3D12Resource* textureResource2 = CreateTextureResource(device, metadata2);
 	ID3D12Resource* intermediateResource2 = UploadTextureData(textureResource2, mipImages2, device, commandList);
@@ -648,7 +656,7 @@ if (SUCCEEDED(device->QueryInterface(IID_PPV_ARGS(&infoQueue)))) {
 	//リソースの先頭のアドレスから使う
 	vertexBufferView.BufferLocation = vertexResource->GetGPUVirtualAddress();
 	//使用するリソースのサイズは頂点3つ分のサイズ
-	vertexBufferView.SizeInBytes = sizeof(VertexData) * 16 * 16 * 4;
+	vertexBufferView.SizeInBytes = UINT(sizeof(VertexData) * modelData.verteces.size());
 	//頂点当たりのサイズ
 	vertexBufferView.StrideInBytes = sizeof(VertexData);
 
@@ -657,85 +665,7 @@ if (SUCCEEDED(device->QueryInterface(IID_PPV_ARGS(&infoQueue)))) {
 	VertexData* vertexData = nullptr;
 	//書き込むためのアドレスを取得
 	vertexResource->Map(0, nullptr, reinterpret_cast<void**>(&vertexData));
-	
-	uint32_t kSubdivision = 16;
-	float pi = 3.141592f;
-	const float kLonEvery = pi * 2.0f / float(kSubdivision);
-	const float kLatEvery = pi / float(kSubdivision);
-	const float kEvery = 1.0f / float(kSubdivision);
-
-	for (uint32_t latIndex = 0; latIndex < kSubdivision; latIndex++) {
-		float lat = -pi / 2.0f + kLatEvery * latIndex;
-		
-		for (uint32_t lonIndex = 0; lonIndex < kSubdivision; lonIndex++) {
-			float lon = lonIndex * kLonEvery;
-			uint32_t start = (latIndex * kSubdivision + lonIndex) * 4;
-
-			float u = float(lonIndex) / float(kSubdivision);
-			float v = 1.0f - float(latIndex) / float(kSubdivision);
-
-			//左下
-			vertexData[start].position.x = std::cos(lat) * std::cos(lon);
-			vertexData[start].position.y = std::sin(lat);
-			vertexData[start].position.z = std::cos(lat) * std::sin(lon);
-			vertexData[start].position.w = 1.0f;
-			vertexData[start].texcoord.x = u;
-			vertexData[start].texcoord.y = v;
-			vertexData[start].normal.x = vertexData[start].position.x;
-			vertexData[start].normal.y = vertexData[start].position.y;
-			vertexData[start].normal.z = vertexData[start].position.z;
-			//左上
-			vertexData[start + 1].position.x = std::cos(lat + kLatEvery) * std::cos(lon);
-			vertexData[start + 1].position.y = std::sin(lat + kLatEvery);
-			vertexData[start + 1].position.z = std::cos(lat + kLatEvery) * std::sin(lon);
-			vertexData[start + 1].position.w = 1.0f;
-			vertexData[start + 1].texcoord.x = u;
-			vertexData[start + 1].texcoord.y = v - kEvery;
-			vertexData[start + 1].normal.x = vertexData[start + 1].position.x;
-			vertexData[start + 1].normal.y = vertexData[start + 1].position.y;
-			vertexData[start + 1].normal.z = vertexData[start + 1].position.z;
-			//右下
-			vertexData[start + 2].position.x = std::cos(lat) * std::cos(lon + kLonEvery);
-			vertexData[start + 2].position.y = std::sin(lat);
-			vertexData[start + 2].position.z = std::cos(lat) * std::sin(lon + kLonEvery);
-			vertexData[start + 2].position.w = 1.0f;
-			vertexData[start + 2].texcoord.x = u + kEvery;
-			vertexData[start + 2].texcoord.y = v;
-			vertexData[start + 2].normal.x = vertexData[start + 2].position.x;
-			vertexData[start + 2].normal.y = vertexData[start + 2].position.y;
-			vertexData[start + 2].normal.z = vertexData[start + 2].position.z;
-			//右上
-			vertexData[start + 3].position.x = std::cos(lat + kLatEvery) * std::cos(lon + kLonEvery);
-			vertexData[start + 3].position.y = std::sin(lat + kLatEvery);
-			vertexData[start + 3].position.z = std::cos(lat + kLatEvery) * std::sin(lon + kLonEvery);
-			vertexData[start + 3].position.w = 1.0f;
-			vertexData[start + 3].texcoord.x = u + kEvery;
-			vertexData[start + 3].texcoord.y = v - kEvery;
-			vertexData[start + 3].normal.x = vertexData[start + 3].position.x;
-			vertexData[start + 3].normal.y = vertexData[start + 3].position.y;
-			vertexData[start + 3].normal.z = vertexData[start + 3].position.z;
-			////右下
-			//vertexData[start + 4].position.x = std::cos(lat) * std::cos(lon + kLonEvery);
-			//vertexData[start + 4].position.y = std::sin(lat);
-			//vertexData[start + 4].position.z = std::cos(lat) * std::sin(lon + kLonEvery);
-			//vertexData[start + 4].position.w = 1.0f;
-			//vertexData[start + 4].texcoord.x = u + kEvery;
-			//vertexData[start + 4].texcoord.y = v;
-			//vertexData[start + 4].normal.x = vertexData[start + 4].position.x;
-			//vertexData[start + 4].normal.y = vertexData[start + 4].position.y;
-			//vertexData[start + 4].normal.z = vertexData[start + 4].position.z;
-			////左上
-			//vertexData[start + 5].position.x = std::cos(lat + kLatEvery) * std::cos(lon);
-			//vertexData[start + 5].position.y = std::sin(lat + kLatEvery);
-			//vertexData[start + 5].position.z = std::cos(lat + kLatEvery) * std::sin(lon);
-			//vertexData[start + 5].position.w = 1.0f;
-			//vertexData[start + 5].texcoord.x = u;
-			//vertexData[start + 5].texcoord.y = v - kEvery;
-			//vertexData[start + 5].normal.x = vertexData[start + 5].position.x;
-			//vertexData[start + 5].normal.y = vertexData[start + 5].position.y;
-			//vertexData[start + 5].normal.z = vertexData[start + 5].position.z;
-		}
-	}
+	std::memcpy(vertexData, modelData.verteces.data(), sizeof(VertexData)* modelData.verteces.size());
 
 	ID3D12Resource* indexResouseSphere = CreateBufferResource(device, sizeof(uint32_t) * 16 * 16 * 6);
 
@@ -744,11 +674,94 @@ if (SUCCEEDED(device->QueryInterface(IID_PPV_ARGS(&infoQueue)))) {
 	indexBufferViewSphere.SizeInBytes = sizeof(uint32_t) * 16 * 16 * 6;
 	indexBufferViewSphere.Format = DXGI_FORMAT_R32_UINT;
 
-	uint32_t* indexDataSphere = nullptr;
-	indexResouseSphere->Map(0, nullptr, reinterpret_cast<void**>(&indexDataSphere));
-	indexDataSphere[0] = 0; indexDataSphere[1] = 1; indexDataSphere[2] = 2;
-	indexDataSphere[3] = 1; indexDataSphere[4] = 3; indexDataSphere[5] = 2;
+	//uint32_t* indexDataSphere = nullptr;
+	//indexResouseSphere->Map(0, nullptr, reinterpret_cast<void**>(&indexDataSphere));
+	//
+	//uint32_t kSubdivision = 16;
+	//float pi = 3.141592f;
+	//const float kLonEvery = pi * 2.0f / float(kSubdivision);
+	//const float kLatEvery = pi / float(kSubdivision);
+	//const float kEvery = 1.0f / float(kSubdivision);
 
+	//for (uint32_t latIndex = 0; latIndex < kSubdivision; latIndex++) {
+	//	float lat = -pi / 2.0f + kLatEvery * latIndex;
+	//	
+	//	for (uint32_t lonIndex = 0; lonIndex < kSubdivision; lonIndex++) {
+	//		float lon = lonIndex * kLonEvery;
+	//		uint32_t start = (latIndex * kSubdivision + lonIndex) * 4;
+
+	//		float u = float(lonIndex) / float(kSubdivision);
+	//		float v = 1.0f - float(latIndex) / float(kSubdivision);
+
+	//		//左下
+	//		vertexData[start].position.x = std::cos(lat) * std::cos(lon);
+	//		vertexData[start].position.y = std::sin(lat);
+	//		vertexData[start].position.z = std::cos(lat) * std::sin(lon);
+	//		vertexData[start].position.w = 1.0f;
+	//		vertexData[start].texcoord.x = u;
+	//		vertexData[start].texcoord.y = v;
+	//		vertexData[start].normal.x = vertexData[start].position.x;
+	//		vertexData[start].normal.y = vertexData[start].position.y;
+	//		vertexData[start].normal.z = vertexData[start].position.z;
+	//		//左上
+	//		vertexData[start + 1].position.x = std::cos(lat + kLatEvery) * std::cos(lon);
+	//		vertexData[start + 1].position.y = std::sin(lat + kLatEvery);
+	//		vertexData[start + 1].position.z = std::cos(lat + kLatEvery) * std::sin(lon);
+	//		vertexData[start + 1].position.w = 1.0f;
+	//		vertexData[start + 1].texcoord.x = u;
+	//		vertexData[start + 1].texcoord.y = v - kEvery;
+	//		vertexData[start + 1].normal.x = vertexData[start + 1].position.x;
+	//		vertexData[start + 1].normal.y = vertexData[start + 1].position.y;
+	//		vertexData[start + 1].normal.z = vertexData[start + 1].position.z;
+	//		//右下
+	//		vertexData[start + 2].position.x = std::cos(lat) * std::cos(lon + kLonEvery);
+	//		vertexData[start + 2].position.y = std::sin(lat);
+	//		vertexData[start + 2].position.z = std::cos(lat) * std::sin(lon + kLonEvery);
+	//		vertexData[start + 2].position.w = 1.0f;
+	//		vertexData[start + 2].texcoord.x = u + kEvery;
+	//		vertexData[start + 2].texcoord.y = v;
+	//		vertexData[start + 2].normal.x = vertexData[start + 2].position.x;
+	//		vertexData[start + 2].normal.y = vertexData[start + 2].position.y;
+	//		vertexData[start + 2].normal.z = vertexData[start + 2].position.z;
+	//		//右上
+	//		vertexData[start + 3].position.x = std::cos(lat + kLatEvery) * std::cos(lon + kLonEvery);
+	//		vertexData[start + 3].position.y = std::sin(lat + kLatEvery);
+	//		vertexData[start + 3].position.z = std::cos(lat + kLatEvery) * std::sin(lon + kLonEvery);
+	//		vertexData[start + 3].position.w = 1.0f;
+	//		vertexData[start + 3].texcoord.x = u + kEvery;
+	//		vertexData[start + 3].texcoord.y = v - kEvery;
+	//		vertexData[start + 3].normal.x = vertexData[start + 3].position.x;
+	//		vertexData[start + 3].normal.y = vertexData[start + 3].position.y;
+	//		vertexData[start + 3].normal.z = vertexData[start + 3].position.z;
+	//		////右下
+	//		//vertexData[start + 4].position.x = std::cos(lat) * std::cos(lon + kLonEvery);
+	//		//vertexData[start + 4].position.y = std::sin(lat);
+	//		//vertexData[start + 4].position.z = std::cos(lat) * std::sin(lon + kLonEvery);
+	//		//vertexData[start + 4].position.w = 1.0f;
+	//		//vertexData[start + 4].texcoord.x = u + kEvery;
+	//		//vertexData[start + 4].texcoord.y = v;
+	//		//vertexData[start + 4].normal.x = vertexData[start + 4].position.x;
+	//		//vertexData[start + 4].normal.y = vertexData[start + 4].position.y;
+	//		//vertexData[start + 4].normal.z = vertexData[start + 4].position.z;
+	//		////左上
+	//		//vertexData[start + 5].position.x = std::cos(lat + kLatEvery) * std::cos(lon);
+	//		//vertexData[start + 5].position.y = std::sin(lat + kLatEvery);
+	//		//vertexData[start + 5].position.z = std::cos(lat + kLatEvery) * std::sin(lon);
+	//		//vertexData[start + 5].position.w = 1.0f;
+	//		//vertexData[start + 5].texcoord.x = u;
+	//		//vertexData[start + 5].texcoord.y = v - kEvery;
+	//		//vertexData[start + 5].normal.x = vertexData[start + 5].position.x;
+	//		//vertexData[start + 5].normal.y = vertexData[start + 5].position.y;
+	//		//vertexData[start + 5].normal.z = vertexData[start + 5].position.z;
+
+	//		uint32_t num = (latIndex * kSubdivision + lonIndex) * 6;
+
+	//		indexDataSphere[num + 0] = start + 0; indexDataSphere[num + 1] = start + 1; indexDataSphere[num + 2] = start + 2;
+	//		indexDataSphere[num + 3] = start + 1; indexDataSphere[num + 4] = start + 3; indexDataSphere[num + 5] = start + 2;
+
+	//	}
+	//}
+	//
 
 
 	ID3D12Resource* indexResouseSprite = CreateBufferResource(device, sizeof(uint32_t) * 6);
@@ -827,6 +840,8 @@ if (SUCCEEDED(device->QueryInterface(IID_PPV_ARGS(&infoQueue)))) {
 	materialResourceSprite->Map(0, nullptr, reinterpret_cast<void**>(&materialDataSprite));
 	//今回は赤を書き込んでいる
 	*materialDataSprite = { Vector4(1.0f, 1.0f, 1.0f, 1.0f) , false };
+	materialDataSprite->uvTransform = Matrix4x4::MakeIdentity4x4();
+
 
 	//平行光源用のリソースを作る。
 	ID3D12Resource* directionalLightResource = CreateBufferResource(device, sizeof(DirectionalLight));
@@ -881,12 +896,18 @@ if (SUCCEEDED(device->QueryInterface(IID_PPV_ARGS(&infoQueue)))) {
 	//ゲームループ前。変数の作成、初期化スペース
 	Transform transform{ {1.0f,1.0f,1.0f},{0.0f,0.0f,0.0f},{0.0f,0.0f,0.0f} };
 
-	Transform cameraTransform{ {1.0f,1.0f,1.0f},{0.0f,0.0f,0.0f},{0.0f,0.0f,-5.0f} };
+	Transform cameraTransform{ {1.0f,1.0f,1.0f},{0.0f,0.0f,0.0f},{0.0f,2.0f,-15.0f} };
 	
 	//CPUで動かす用のTransformを作る
 	Transform transformSprite{ {1.0f,1.0f,1.0f},{0.0f,0.0f,0.0f},{0.0f,0.0f,0.0f} };
 
 	bool useMonsterBall = true;
+
+	Transform uvTransformSprite{
+		{1.0f,1.0f,1.0f},
+		{0.0f,0.0f,0.0f},
+		{0.0f,0.0f,0.0f}
+	};
 
 	MSG msg{};
 	//ウィンドウの×ボタンが押されるまでループ
@@ -905,10 +926,19 @@ if (SUCCEEDED(device->QueryInterface(IID_PPV_ARGS(&infoQueue)))) {
 
 			//開発用UIの処理。実際に開発のUIを出す場合はここをゲーム固有の処理に置き換える
 			//ImGui::ShowDemoWindow();
+			ImGui::DragFloat3("camera.translate", &cameraTransform.translate.x, 0.01f);
+			ImGui::SliderFloat3("camera.rotate", &cameraTransform.rotate.x, -3.14f, 3.14f);
 			ImGui::Checkbox("useMonsterBall", &useMonsterBall);
 			ImGui::DragFloat4("directionalLightData.color", &directionalLightData->color.x, 0.01f);
 			ImGui::DragFloat3("directionalLightData.direction", &directionalLightData->direction.x, 0.01f);
 			ImGui::DragFloat("directionalLightData.intensity", &directionalLightData->intensity, 0.01f);
+
+			ImGui::DragFloat2("UVTranslate", &uvTransformSprite.translate.x, 0.01f, -10.0f, 10.0f);
+			ImGui::DragFloat2("UVScale", &uvTransformSprite.scale.x, 0.01f, -10.0f, 10.0f);
+			ImGui::SliderAngle("UVRotate", &uvTransformSprite.rotate.z);
+
+			Matrix4x4 uvTransformMatrix = Matrix4x4::MakeAffinMatrix(uvTransformSprite.scale, uvTransformSprite.rotate, uvTransformSprite.translate);
+			materialDataSprite->uvTransform = uvTransformMatrix;
 
 			directionalLightData->direction = Calc::Normalize(directionalLightData->direction);
 
@@ -979,7 +1009,8 @@ if (SUCCEEDED(device->QueryInterface(IID_PPV_ARGS(&infoQueue)))) {
 			commandList->SetPipelineState(graphicsPipelineState); // PSOを設定
 			commandList->IASetVertexBuffers(0, 1, &vertexBufferView); // VBVを設定
 
-			commandList->IASetIndexBuffer(&indexBufferViewSphere);
+			//commandList->IASetIndexBuffer(&indexBufferViewSphere);
+			
 			//形状を設定。PSOに設定しているものとは別。同じものを設定すると考えておけばいい
 			commandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
@@ -993,8 +1024,8 @@ if (SUCCEEDED(device->QueryInterface(IID_PPV_ARGS(&infoQueue)))) {
 			//SRVのDescriptorTableの先頭に設定。2はrootParameter[2]である
 			commandList->SetGraphicsRootDescriptorTable(2, useMonsterBall ? textureSrvHandleGPU2 : textureSrvHandleGPU);
 			//描画!!!!（DrawCall/ドローコール）。3頂点で1つのインスタンス。インスタンスについては今後
-			//commandList->DrawInstanced(16 * 16 * 6, 1, 0, 0);
-			commandList->DrawIndexedInstanced(16 * 16 * 6, 1, 0, 0, 0);
+			commandList->DrawInstanced(UINT(modelData.verteces.size()), 1, 0, 0);
+			//commandList->DrawIndexedInstanced(16 * 16 * 6, 1, 0, 0, 0);
 			//Spriteの描画。変更に必要なものだけ変更する
 			commandList->IASetVertexBuffers(0, 1, &vertexBufferViewSprite); // VBVを設定
 			commandList->IASetIndexBuffer(&indexBufferViewSprite);
@@ -1006,7 +1037,7 @@ if (SUCCEEDED(device->QueryInterface(IID_PPV_ARGS(&infoQueue)))) {
 			commandList->SetGraphicsRootDescriptorTable(2, textureSrvHandleGPU);
 			//描画!!!!（DrawCall/ドローコール）
 			//commandList->DrawInstanced(6, 1, 0, 0);
-			commandList->DrawIndexedInstanced(6, 1, 0, 0, 0);
+			//commandList->DrawIndexedInstanced(6, 1, 0, 0, 0);
 
 			//実際のcommandListのImGuiの描画コマンドを積む。描画処理の終わったタイミング
 			ImGui_ImplDX12_RenderDrawData(ImGui::GetDrawData(), commandList);
