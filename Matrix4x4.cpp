@@ -126,6 +126,10 @@ Matrix4x4 Matrix4x4::Inverse(const Matrix4x4& m) {
 	return result;
 }
 
+Matrix4x4 Matrix4x4::Inverse() {
+	return Inverse(*this);
+}
+
 // 転置行列
 Matrix4x4 Matrix4x4::Transpose(const Matrix4x4& m) {
 	Matrix4x4 result = {};
@@ -270,9 +274,9 @@ Matrix4x4 Matrix4x4::MakeRotateMatrix(const Vector3& rotate, RotateType rotateOr
 
 Matrix4x4 Matrix4x4::MakeAffinMatrix(
 	const Vector3& scale, const Vector3& rotate, const Vector3& translate) {
-	/*MyMatrix4x4 result = MyMatrix4x4::Multiply(MyMatrix4x4::MakeScaleMatrix(scale),
-		MyMatrix4x4::Multiply(MyMatrix4x4::MakeRotateXYZMatrix(rotate),
-	   MyMatrix4x4::MakeTranslateMatrix(translate)));*/
+	/*Matrix4x4 result = Matrix4x4::Multiply(Matrix4x4::MakeScaleMatrix(scale),
+		Matrix4x4::Multiply(Matrix4x4::MakeRotateXYZMatrix(rotate),
+	   Matrix4x4::MakeTranslateMatrix(translate)));*/
 
 	Matrix4x4 rotateMatrix = Matrix4x4::MakeRotateXYZMatrix(rotate);
 
@@ -298,8 +302,8 @@ Matrix4x4 Matrix4x4::MakeAffinMatrix(
 }
 
 Matrix4x4 Matrix4x4::MakeAffinMatrix(const Vector3& scale, const Vector3& rotate, const Vector3& translate, RotateType rotateOrder) {
-	/*MyMatrix4x4 result = MyMatrix4x4::Multiply(MyMatrix4x4::MakeScaleMatrix(scale),
-		MyMatrix4x4::Multiply(MyMatrix4x4::MakeRotateXYZMatrix(rotate), MyMatrix4x4::MakeTranslateMatrix(translate)));*/
+	/*Matrix4x4 result = Matrix4x4::Multiply(Matrix4x4::MakeScaleMatrix(scale),
+		Matrix4x4::Multiply(Matrix4x4::MakeRotateXYZMatrix(rotate), Matrix4x4::MakeTranslateMatrix(translate)));*/
 
 	Matrix4x4 rotateMatrix = Matrix4x4::MakeRotateMatrix(rotate, rotateOrder);
 
@@ -341,4 +345,32 @@ Matrix4x4 Matrix4x4::MakeViewportMatrix(float left, float top, float width, floa
 		left + width / 2,top + height / 2,minDepth,1
 	};
 	return result;
+}
+
+Matrix4x4 operator+(const Matrix4x4 m1, const Matrix4x4& m2) {
+	return Matrix4x4::Add(m1, m2);
+}
+
+Matrix4x4 operator-(const Matrix4x4 m1, const Matrix4x4& m2) {
+	return Matrix4x4::Subtract(m1, m2);
+}
+
+Matrix4x4 operator*(const Matrix4x4 m1, const Matrix4x4& m2) {
+	return Matrix4x4::Multiply(m1, m2);
+}
+
+Matrix4x4 operator*(float s, const Matrix4x4& m) {
+	return Matrix4x4::Multiply(s, m);
+}
+
+Matrix4x4 operator*(const Matrix4x4& m, float s) {
+	return Matrix4x4::Multiply(s, m);
+}
+
+Vector3 operator*(const Vector3& v, const Matrix4x4& m) {
+	return Matrix4x4::Multiply(v, m);
+}
+
+Vector3 operator*(const Matrix4x4& m, const Vector3& v) {
+	return Matrix4x4::Multiply(v, m);
 }

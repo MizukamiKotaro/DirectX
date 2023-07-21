@@ -25,6 +25,9 @@
     <Filter Include="ヘッダー ファイル\include">
       <UniqueIdentifier>{31b155cc-5f6a-4841-a856-a300be5e580e}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Adapter">
+      <UniqueIdentifier>{65a4d997-070c-40bb-b6b0-2e3a92c9c452}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -71,6 +74,18 @@
     </ClCompile>
     <ClCompile Include="MaterialData.cpp">
       <Filter>ソース ファイル</Filter>
+    </ClCompile>
+    <ClCompile Include="DirectXCommon.cpp">
+      <Filter>ソース ファイル</Filter>
+    </ClCompile>
+    <ClCompile Include="Vector2.cpp">
+      <Filter>ソース ファイル\Math</Filter>
+    </ClCompile>
+    <ClCompile Include="Vector3.cpp">
+      <Filter>ソース ファイル\Math</Filter>
+    </ClCompile>
+    <ClCompile Include="Kyoko.cpp">
+      <Filter>Adapter</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -146,6 +161,15 @@
     </ClInclude>
     <ClInclude Include="MaterialData.h">
       <Filter>ヘッダー ファイル\include</Filter>
+    </ClInclude>
+    <ClInclude Include="Kyoko.h">
+      <Filter>Adapter</Filter>
+    </ClInclude>
+    <ClInclude Include="DirectXCommon.h">
+      <Filter>ヘッダー ファイル\include</Filter>
+    </ClInclude>
+    <ClInclude Include="ResourceLeakChecker.h">
+      <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

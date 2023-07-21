@@ -24,6 +24,8 @@ public:
 
 	static Matrix4x4 Inverse(const Matrix4x4& m);
 
+	Matrix4x4 Inverse();
+
 	// 転置行列
 	static Matrix4x4 Transpose(const Matrix4x4& m);
 
@@ -59,3 +61,17 @@ public:
 public:
 	float m[4][4];
 };
+
+Matrix4x4 operator+(const Matrix4x4 m1, const Matrix4x4& m2);
+
+Matrix4x4 operator-(const Matrix4x4 m1, const Matrix4x4& m2);
+
+Matrix4x4 operator*(const Matrix4x4 m1, const Matrix4x4& m2);
+
+Matrix4x4 operator*(float s, const Matrix4x4& m);
+
+Matrix4x4 operator*(const Matrix4x4& m, float s);
+
+Vector3 operator*(const Vector3& v, const Matrix4x4& m);
+
+Vector3 operator*(const Matrix4x4& m, const Vector3& v);
