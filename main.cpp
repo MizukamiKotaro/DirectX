@@ -275,6 +275,9 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR lpCmdLine, _In
 
 	winApp->CreateGameWindow();
 
+	/*DirectXCommon* d = new DirectXCommon();
+	d->Initialize(winApp);*/
+
 
 #ifdef _DEBUG
 	ID3D12Debug1* debugController = nullptr;

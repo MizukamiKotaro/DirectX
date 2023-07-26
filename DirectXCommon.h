@@ -31,7 +31,7 @@ public: // メンバ関数
 	/// <summary>
 	/// ディスクリプタヒープの作成関数
 	/// </summary>
-	static ID3D12DescriptorHeap* CreateDescriptorHeap(ID3D12Device* device, D3D12_DESCRIPTOR_HEAP_TYPE heapType, UINT numDescriptors, bool shaderVisible);
+	static Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> CreateDescriptorHeap(Microsoft::WRL::ComPtr<ID3D12Device> device, D3D12_DESCRIPTOR_HEAP_TYPE heapType, UINT numDescriptors, bool shaderVisible);
 
 private: // メンバ変数
 public: //確認のため
@@ -53,7 +53,7 @@ public: //確認のため
 
 	// 確認用
 	//RTVを2つ作るのでディスクリプタを2つ用意
-	//D3D12_CPU_DESCRIPTOR_HANDLE rtvHandles_[2];
+	D3D12_CPU_DESCRIPTOR_HANDLE rtvHandles_[2] = {};
 
 private: // メンバ関数
 
@@ -82,7 +82,7 @@ private: // メンバ関数
 	/// </summary>
 	void CreateDepthBuffer();
 
-	ID3D12Resource* CreateDepthStencilTextureResource(ID3D12Device* device, int32_t width, int32_t height);
+	Microsoft::WRL::ComPtr<ID3D12Resource> CreateDepthStencilTextureResource(Microsoft::WRL::ComPtr<ID3D12Device> device, int32_t width, int32_t height);
 
 	/// <summary>
 	/// フェンス生成
