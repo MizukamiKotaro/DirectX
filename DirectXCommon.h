@@ -51,9 +51,12 @@ public: //確認のため
 	uint64_t fenceValue_ = 0;
 	HANDLE fenceEvent_ = nullptr;
 
+
+
 	// 確認用
 	//RTVを2つ作るのでディスクリプタを2つ用意
 	D3D12_CPU_DESCRIPTOR_HANDLE rtvHandles_[2] = {};
+	Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> srvHeap_ = nullptr;
 
 private: // メンバ関数
 
