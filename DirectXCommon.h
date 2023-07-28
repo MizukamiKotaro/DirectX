@@ -58,6 +58,8 @@ public: //確認のため
 	D3D12_CPU_DESCRIPTOR_HANDLE rtvHandles_[2] = {};
 	Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> srvHeap_ = nullptr;
 
+	IDXGIAdapter4* useAdapter_ = nullptr;
+
 private: // メンバ関数
 
 	/// <summary>
