@@ -564,7 +564,7 @@ if (SUCCEEDED(device->QueryInterface(IID_PPV_ARGS(&infoQueue)))) {
 	// DepthStencilStateの設定
 	D3D12_DEPTH_STENCIL_DESC depthStencilDesc{};
 	// Depthの機能を有効化する
-	depthStencilDesc.DepthEnable = true;;
+	depthStencilDesc.DepthEnable = true;
 	// 書き込みします
 	depthStencilDesc.DepthWriteMask = D3D12_DEPTH_WRITE_MASK_ALL;
 	// 比較関数はLessEqual。つまり、近ければ描画される
@@ -595,6 +595,9 @@ if (SUCCEEDED(device->QueryInterface(IID_PPV_ARGS(&infoQueue)))) {
 	assert(SUCCEEDED(hr));
 
 
+
+
+
 	// モデル読み込み
 	ModelData modelData = ModelData::LoadObjeFile("resources", "axis.obj");
 
@@ -610,7 +613,7 @@ if (SUCCEEDED(device->QueryInterface(IID_PPV_ARGS(&infoQueue)))) {
 	//書き込むためのアドレスを取得
 	materialResource->Map(0, nullptr, reinterpret_cast<void**>(&materialData));
 	//今回は赤を書き込んでいる
-	*materialData = { Vector4(1.0f, 1.0f, 1.0f, 1.0f) , true };
+	*materialData = { Vector4(1.0f, 1.0f, 1.0f, 1.0f) , 2 };
 	materialData->uvTransform = Matrix4x4::MakeIdentity4x4();
 
 	//WVP用のリソースを作る。Matrix4x4　1つ分のサイズを用意する
@@ -618,6 +621,8 @@ if (SUCCEEDED(device->QueryInterface(IID_PPV_ARGS(&infoQueue)))) {
 	TransformationMatrix* transformationMatrixData = nullptr;
 	transformationMatrixResource->Map(0, nullptr, reinterpret_cast<void**>(&transformationMatrixData));
 	*transformationMatrixData = { Matrix4x4::MakeIdentity4x4() ,Matrix4x4::MakeIdentity4x4() };
+
+
 
 	// Textureを読んで転送する
 	DirectX::ScratchImage mipImages = LoadTexture("resources/uvChecker.png");
@@ -629,6 +634,8 @@ if (SUCCEEDED(device->QueryInterface(IID_PPV_ARGS(&infoQueue)))) {
 	const DirectX::TexMetadata& metadata2 = mipImages2.GetMetadata();
 	ID3D12Resource* textureResource2 = CreateTextureResource(device, metadata2);
 	ID3D12Resource* intermediateResource2 = UploadTextureData(textureResource2, mipImages2, device, commandList);
+
+
 
 	//metadataを基にSRVの設定
 	D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc{};
@@ -654,6 +661,7 @@ if (SUCCEEDED(device->QueryInterface(IID_PPV_ARGS(&infoQueue)))) {
 	D3D12_CPU_DESCRIPTOR_HANDLE textureSrvHandleCPU2 = GetCPUDescriptorHandle(srvDescriptorHeap, descriptorSizeSRV, 2);
 	D3D12_GPU_DESCRIPTOR_HANDLE textureSrvHandleGPU2 = GetGPUDescriptorHandle(srvDescriptorHeap, descriptorSizeSRV, 2);
 	
+
 	//SRVの生成
 	device->CreateShaderResourceView(textureResource, &srvDesc, textureSrvHandleCPU);
 	device->CreateShaderResourceView(textureResource2, &srvDesc2, textureSrvHandleCPU2);
@@ -995,6 +1003,8 @@ if (SUCCEEDED(device->QueryInterface(IID_PPV_ARGS(&infoQueue)))) {
 			//TransitionBarrierを張る
 			commandList->ResourceBarrier(1, &barrier);
 
+
+
 			//描画先のRTVを設定する
 			// 描画先のRTVとDSVを設定する
 			D3D12_CPU_DESCRIPTOR_HANDLE dsvHandle = dsvDescriptorHeap->GetCPUDescriptorHandleForHeapStart();
@@ -1005,6 +1015,8 @@ if (SUCCEEDED(device->QueryInterface(IID_PPV_ARGS(&infoQueue)))) {
 			//指定した色で画面全体をクリアする
 			float clearColor[] = { 0.1f,0.25f,0.5f,1.0f }; //青っぽい色。RGBAの順
 			commandList->ClearRenderTargetView(rtvHandles[backBufferIndex], clearColor, 0, nullptr);
+
+
 
 			//描画用のDescriptorHeapの設定
 			ID3D12DescriptorHeap* descriptorHeaps[] = { srvDescriptorHeap };
@@ -1025,6 +1037,7 @@ if (SUCCEEDED(device->QueryInterface(IID_PPV_ARGS(&infoQueue)))) {
 			//平行光源CBufferの場所を設定
 			commandList->SetGraphicsRootConstantBufferView(3, directionalLightResource->GetGPUVirtualAddress());
 
+
 			//マテリアルCBufferの場所を設定
 			commandList->SetGraphicsRootConstantBufferView(0, materialResource->GetGPUVirtualAddress());
 			//wvp用のBufferの場所を設定
@@ -1034,6 +1047,8 @@ if (SUCCEEDED(device->QueryInterface(IID_PPV_ARGS(&infoQueue)))) {
 			//描画!!!!（DrawCall/ドローコール）。3頂点で1つのインスタンス。インスタンスについては今後
 			commandList->DrawInstanced(UINT(modelData.verteces.size()), 1, 0, 0);
 			//commandList->DrawIndexedInstanced(16 * 16 * 6, 1, 0, 0, 0);
+	
+		
 			//Spriteの描画。変更に必要なものだけ変更する
 			commandList->IASetVertexBuffers(0, 1, &vertexBufferViewSprite); // VBVを設定
 			commandList->IASetIndexBuffer(&indexBufferViewSprite);
@@ -1046,6 +1061,8 @@ if (SUCCEEDED(device->QueryInterface(IID_PPV_ARGS(&infoQueue)))) {
 			//描画!!!!（DrawCall/ドローコール）
 			//commandList->DrawInstanced(6, 1, 0, 0);
 			//commandList->DrawIndexedInstanced(6, 1, 0, 0, 0);
+
+
 
 			//実際のcommandListのImGuiの描画コマンドを積む。描画処理の終わったタイミング
 			ImGui_ImplDX12_RenderDrawData(ImGui::GetDrawData(), commandList);
