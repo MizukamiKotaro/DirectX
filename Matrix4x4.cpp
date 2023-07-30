@@ -170,11 +170,11 @@ Matrix4x4 Matrix4x4::MakeScaleMatrix(const Vector3& scale) {
 	return result;
 }
 
-Vector3 Matrix4x4::Transform(const Vector3& vector, const Matrix4x4& m) {
-	Vector3 result = Matrix4x4::Multiply(vector, m);
-
-	return result;
-}
+//Vector3 Matrix4x4::Transform(const Vector3& vector, const Matrix4x4& m) {
+//	Vector3 result = Matrix4x4::Multiply(vector, m);
+//
+//	return result;
+//}
 
 Matrix4x4 Matrix4x4::MakeRotateXMatrix(float radian) {
 	Matrix4x4 result = { 1,
@@ -315,6 +315,10 @@ Matrix4x4 Matrix4x4::MakeAffinMatrix(const Vector3& scale, const Vector3& rotate
 	};
 
 	return result;
+}
+
+Matrix4x4 Matrix4x4::MakeAffinMatrix(const Transform& transform) {
+	return MakeAffinMatrix(transform.scale, transform.rotate, transform.translate);
 }
 
 Matrix4x4 Matrix4x4::MakePerspectiveFovMatrix(float fovY, float aspectRatio, float nearClip, float farClip) {
