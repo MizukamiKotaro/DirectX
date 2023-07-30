@@ -291,7 +291,7 @@ D3D12_GPU_DESCRIPTOR_HANDLE GetGPUDescriptorHandle(ID3D12DescriptorHeap* descrip
 //Windowsアプリでのエントリーポイント(main関数)
 int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR lpCmdLine, _In_ int nShowCmd) {
 
-	ResourceLeackChecker leakCheck;
+	//ResourceLeackChecker leakCheck;
 
 	WinApp* winApp= new WinApp();
 
@@ -1167,8 +1167,50 @@ if (SUCCEEDED(device->QueryInterface(IID_PPV_ARGS(&infoQueue)))) {
 	Matrix4x4 uvTransformMatrixSphere = Matrix4x4::MakeAffinMatrix(uvTransformSphere);
 	materialDataSphere->uvTransform = uvTransformMatrixSphere;
 
+	Transform tr01Transform = { {1.0f,1.0f,1.0f},{0.0f,0.0f,0.0f},{0.0f,0.0f,0.0f} };
+	Matrix4x4 worldMatrixTr01 = Matrix4x4::MakeAffinMatrix(tr01Transform);
+	Matrix4x4 worldViewProjectionMatrixTr01 = Matrix4x4::Multiply(worldMatrixTr01, viewProjectionMatrix);
+
+	transformationMatrixDataTriangle01->WVP = worldViewProjectionMatrixTr01;
+	transformationMatrixDataTriangle01->World = worldMatrixTr01;
+
+	Transform uvTransformTr01{
+		{1.0f,1.0f,1.0f},
+		{0.0f,0.0f,0.0f},
+		{0.0f,0.0f,0.0f}
+	};
+	Matrix4x4 uvTransformMatrixTr01 = Matrix4x4::MakeAffinMatrix(uvTransformTr01);
+	materialDataTriangle01->uvTransform = uvTransformMatrixTr01;
+
+	bool uvc01 = false;
+
+	Transform tr02Transform = { {1.0f,1.0f,1.0f},{0.0f,0.0f,0.0f},{0.0f,0.0f,0.0f} };
+	Matrix4x4 worldMatrixTr02 = Matrix4x4::MakeAffinMatrix(tr02Transform);
+	Matrix4x4 worldViewProjectionMatrixTr02 = Matrix4x4::Multiply(worldMatrixTr02, viewProjectionMatrix);
+
+	transformationMatrixDataTriangle02->WVP = worldViewProjectionMatrixTr02;
+	transformationMatrixDataTriangle02->World = worldMatrixTr02;
+
+	Transform uvTransformTr02{
+		{1.0f,1.0f,1.0f},
+		{0.0f,0.0f,0.0f},
+		{0.0f,0.0f,0.0f}
+	};
+	Matrix4x4 uvTransformMatrixTr02 = Matrix4x4::MakeAffinMatrix(uvTransformTr02);
+	materialDataTriangle02->uvTransform = uvTransformMatrixTr02;
+
+	bool drawTr01 = false;
+	bool drawTr02 = false;
 	bool drawSprite = false;
 	bool drawSphere = false;
+
+	enum {
+		None,
+		Lambertian,
+		Half
+
+	};
+
 
 	MSG msg{};
 	//ウィンドウの×ボタンが押されるまでループ
@@ -1188,12 +1230,109 @@ if (SUCCEEDED(device->QueryInterface(IID_PPV_ARGS(&infoQueue)))) {
 			//開発用UIの処理。実際に開発のUIを出す場合はここをゲーム固有の処理に置き換える
 			//ImGui::ShowDemoWindow();
 			if (ImGui::TreeNode("Triangle1")) {
-				
+				ImGui::Checkbox("Draw", &drawTr01);
+
+				if (drawTr01) {
+					if (ImGui::TreeNode("Transform")) {
+
+						ImGui::DragFloat3("scale", &tr01Transform.scale.x, 0.01f);
+						ImGui::SliderFloat3("rotate", &tr01Transform.rotate.x, -3.14f, 3.14f);
+						ImGui::DragFloat3("translate", &tr01Transform.translate.x, 0.01f);
+
+						ImGui::TreePop();
+					}
+
+					//Sprite用のWorldProjectionMatrixを作る
+					worldMatrixTr01 = Matrix4x4::MakeAffinMatrix(tr01Transform);
+					worldViewProjectionMatrixTr01 = Matrix4x4::Multiply(worldMatrixTr01, viewProjectionMatrix);
+
+					transformationMatrixDataTriangle01->WVP = worldViewProjectionMatrixTr01;
+					transformationMatrixDataTriangle01->World = worldMatrixTr01;
+					if (ImGui::TreeNode("Color")) {
+
+						ImGui::ColorEdit3("color", &materialDataTriangle01->color.x);
+						ImGui::TreePop();
+					}
+
+					if (ImGui::TreeNode("UV")) {
+
+						ImGui::DragFloat2("UVTranslate", &uvTransformTr01.translate.x, 0.01f, -10.0f, 10.0f);
+						ImGui::DragFloat2("UVScale", &uvTransformTr01.scale.x, 0.01f, -10.0f, 10.0f);
+						ImGui::SliderAngle("UVRotate", &uvTransformTr01.rotate.z);
+						uvTransformMatrixTr01 = Matrix4x4::MakeAffinMatrix(uvTransformTr01);
+						materialDataTriangle01->uvTransform = uvTransformMatrixTr01;
+						ImGui::TreePop();
+					}
+
+					if (ImGui::TreeNode("Resource")) {
+						ImGui::Checkbox("UVChecker", &uvc01);
+
+						ImGui::TreePop();
+					}
+					
+					if (ImGui::TreeNode("Light")) {
+						ImGui::RadioButton("None", &materialDataTriangle01->enableLighting, None); ImGui::SameLine();
+						ImGui::RadioButton("Lambertian Reflectance", &materialDataTriangle01->enableLighting, Lambertian); ImGui::SameLine();
+						ImGui::RadioButton("Half Lambert", &materialDataTriangle01->enableLighting, Half);
+
+						ImGui::TreePop();
+					}
+					
+
+
+				}
 
 				ImGui::TreePop();
 			}
 			if (ImGui::TreeNode("Triangle2")) {
+				ImGui::Checkbox("Draw", &drawTr02);
 
+				if (drawTr02) {
+					if (ImGui::TreeNode("Transform")) {
+
+						ImGui::DragFloat3("scale", &tr02Transform.scale.x, 0.01f);
+						ImGui::SliderFloat3("rotate", &tr02Transform.rotate.x, -3.14f, 3.14f);
+						ImGui::DragFloat3("translate", &tr02Transform.translate.x, 0.01f);
+
+						
+
+						ImGui::TreePop();
+					}
+					//Sprite用のWorldProjectionMatrixを作る
+					worldMatrixTr02 = Matrix4x4::MakeAffinMatrix(tr02Transform);
+					worldViewProjectionMatrixTr02 = Matrix4x4::Multiply(worldMatrixTr02, viewProjectionMatrix);
+
+					transformationMatrixDataTriangle02->WVP = worldViewProjectionMatrixTr02;
+					transformationMatrixDataTriangle02->World = worldMatrixTr02;
+					if (ImGui::TreeNode("Color")) {
+
+						ImGui::ColorEdit3("color", &materialDataTriangle02->color.x);
+						ImGui::TreePop();
+					}
+
+					if (ImGui::TreeNode("UV")) {
+
+						ImGui::DragFloat2("UVTranslate", &uvTransformTr02.translate.x, 0.01f, -10.0f, 10.0f);
+						ImGui::DragFloat2("UVScale", &uvTransformTr02.scale.x, 0.01f, -10.0f, 10.0f);
+						ImGui::SliderAngle("UVRotate", &uvTransformTr02.rotate.z);
+						uvTransformMatrixTr02 = Matrix4x4::MakeAffinMatrix(uvTransformTr02);
+						materialDataTriangle02->uvTransform = uvTransformMatrixTr02;
+						ImGui::TreePop();
+					}
+
+					
+
+					if (ImGui::TreeNode("Light")) {
+						ImGui::RadioButton("None", &materialDataTriangle02->enableLighting, None); ImGui::SameLine();
+						ImGui::RadioButton("Lambertian Reflectance", &materialDataTriangle02->enableLighting, Lambertian); ImGui::SameLine();
+						ImGui::RadioButton("Half Lambert", &materialDataTriangle02->enableLighting, Half);
+
+						ImGui::TreePop();
+					}
+
+
+
+				}
 
 				ImGui::TreePop();
 			}
@@ -1209,14 +1348,15 @@ if (SUCCEEDED(device->QueryInterface(IID_PPV_ARGS(&infoQueue)))) {
 						ImGui::SliderFloat("rotate", &transformSprite.rotate.z, -3.14f, 3.14f);
 						ImGui::DragFloat2("translate", &transformSprite.translate.x, 1.0f);
 
-						//Sprite用のWorldProjectionMatrixを作る
-						worldMatrixSprite = Matrix4x4::MakeAffinMatrix(transformSprite.scale, transformSprite.rotate, transformSprite.translate);
-						worldViewProjectionMatrixSprite = Matrix4x4::Multiply(worldMatrixSprite, viewProjectionMatrixSprite);
-
-						transformationMatrixDataSphere->WVP = worldMatrixSphere;
-						transformationMatrixDataSphere->World = worldMatrixSphere;
 						ImGui::TreePop();
 					}
+
+					//Sprite用のWorldProjectionMatrixを作る
+					worldMatrixSprite = Matrix4x4::MakeAffinMatrix(transformSprite.scale, transformSprite.rotate, transformSprite.translate);
+					worldViewProjectionMatrixSprite = Matrix4x4::Multiply(worldMatrixSprite, viewProjectionMatrixSprite);
+
+					transformationMatrixDataSphere->WVP = worldMatrixSphere;
+					transformationMatrixDataSphere->World = worldMatrixSphere;
 					if (ImGui::TreeNode("Color")) {
 
 						ImGui::ColorEdit3("color", &materialDataSprite->color.x);
@@ -1251,21 +1391,21 @@ if (SUCCEEDED(device->QueryInterface(IID_PPV_ARGS(&infoQueue)))) {
 						ImGui::SliderFloat3("rotate", &sphereTransform.rotate.x, -3.14f, 3.14f);
 						ImGui::DragFloat3("translate", &sphereTransform.translate.x, 0.01f);
 
-						//Sprite用のWorldProjectionMatrixを作る
-						worldMatrixSphere = Matrix4x4::MakeAffinMatrix(sphereTransform);
-						worldViewProjectionMatrixSphere = Matrix4x4::Multiply(worldMatrixSphere, viewProjectionMatrix);
-
-						transformationMatrixDataSphere->WVP = worldViewProjectionMatrixSphere;
-						transformationMatrixDataSphere->World = worldMatrixSphere;
+						
 						ImGui::TreePop();
 					}
+
+					//Sprite用のWorldProjectionMatrixを作る
+					worldMatrixSphere = Matrix4x4::MakeAffinMatrix(sphereTransform);
+					worldViewProjectionMatrixSphere = Matrix4x4::Multiply(worldMatrixSphere, viewProjectionMatrix);
+
+					transformationMatrixDataSphere->WVP = worldViewProjectionMatrixSphere;
+					transformationMatrixDataSphere->World = worldMatrixSphere;
 					if (ImGui::TreeNode("Color")) {
 
 						ImGui::ColorEdit3("color", &materialDataSphere->color.x);
 						ImGui::TreePop();
 					}
-
-					ImGui::Checkbox("MonsterBall", &monsterBall);
 
 					if (ImGui::TreeNode("UV")) {
 
@@ -1276,7 +1416,18 @@ if (SUCCEEDED(device->QueryInterface(IID_PPV_ARGS(&infoQueue)))) {
 						materialDataSphere->uvTransform = uvTransformMatrixSphere;
 						ImGui::TreePop();
 					}
+					if (ImGui::TreeNode("Resource")) {
+						ImGui::Checkbox("MonsterBall", &monsterBall);
+					}
+					
+					if (ImGui::TreeNode("Light")) {
 
+						ImGui::RadioButton("None", &materialDataSphere->enableLighting, None); ImGui::SameLine();
+						ImGui::RadioButton("Lambertian Reflectance", &materialDataSphere->enableLighting, Lambertian); ImGui::SameLine();
+						ImGui::RadioButton("Half Lambert", &materialDataSphere->enableLighting, Half);
+						ImGui::TreePop();
+					}
+					
 
 
 				}
@@ -1375,24 +1526,35 @@ if (SUCCEEDED(device->QueryInterface(IID_PPV_ARGS(&infoQueue)))) {
 			
 
 
-			commandList->IASetVertexBuffers(0, 1, &vertexBufferView); // VBVを設定
-			//commandList->IASetIndexBuffer(&indexBufferViewSphere);
+			//commandList->IASetVertexBuffers(0, 1, &vertexBufferView); // VBVを設定
+			////commandList->IASetIndexBuffer(&indexBufferViewSphere);
 
-			//マテリアルCBufferの場所を設定
-			commandList->SetGraphicsRootConstantBufferView(0, materialResource->GetGPUVirtualAddress());
-			//wvp用のBufferの場所を設定
-			commandList->SetGraphicsRootConstantBufferView(1, transformationMatrixResource->GetGPUVirtualAddress());
-			//SRVのDescriptorTableの先頭に設定。2はrootParameter[2]である
-			commandList->SetGraphicsRootDescriptorTable(2, textureSrvHandleGPU2);
-			//描画!!!!（DrawCall/ドローコール）。3頂点で1つのインスタンス。インスタンスについては今後
-			commandList->DrawInstanced(UINT(modelData.verteces.size()), 1, 0, 0);
-			
+			////マテリアルCBufferの場所を設定
+			//commandList->SetGraphicsRootConstantBufferView(0, materialResource->GetGPUVirtualAddress());
+			////wvp用のBufferの場所を設定
+			//commandList->SetGraphicsRootConstantBufferView(1, transformationMatrixResource->GetGPUVirtualAddress());
+			////SRVのDescriptorTableの先頭に設定。2はrootParameter[2]である
+			//commandList->SetGraphicsRootDescriptorTable(2, textureSrvHandleGPU2);
+			////描画!!!!（DrawCall/ドローコール）。3頂点で1つのインスタンス。インスタンスについては今後
+			//commandList->DrawInstanced(UINT(modelData.verteces.size()), 1, 0, 0);
+			//
 	
-			//三角形の描画
-			commandList->IASetVertexBuffers(0, 1, &vertexBufferViewTriangle01);
-			commandList->SetGraphicsRootConstantBufferView(0, materialResourceTriangle01->GetGPUVirtualAddress());
-			commandList->SetGraphicsRootDescriptorTable(2, textureSrvHandleGPU);
-			commandList->DrawInstanced(3, 1, 0, 0);
+			if (drawTr01) {
+				//三角形の描画
+				commandList->IASetVertexBuffers(0, 1, &vertexBufferViewTriangle01);
+				commandList->SetGraphicsRootConstantBufferView(1, transformationMatrixResourceTriangle01->GetGPUVirtualAddress());
+				commandList->SetGraphicsRootConstantBufferView(0, materialResourceTriangle01->GetGPUVirtualAddress());
+				commandList->SetGraphicsRootDescriptorTable(2, uvc01 ? textureSrvHandleGPU2 : textureSrvHandleGPU);
+				commandList->DrawInstanced(3, 1, 0, 0);
+			}
+			if (drawTr02) {
+				//三角形の描画
+				commandList->IASetVertexBuffers(0, 1, &vertexBufferViewTriangle02);
+				commandList->SetGraphicsRootConstantBufferView(1, transformationMatrixResourceTriangle02->GetGPUVirtualAddress());
+				commandList->SetGraphicsRootConstantBufferView(0, materialResourceTriangle02->GetGPUVirtualAddress());
+				commandList->SetGraphicsRootDescriptorTable(2, textureSrvHandleGPU2);
+				commandList->DrawInstanced(3, 1, 0, 0);
+			}
 
 			if (drawSphere) {
 				//Spriteの描画。変更に必要なものだけ変更する
@@ -1540,14 +1702,14 @@ if (SUCCEEDED(device->QueryInterface(IID_PPV_ARGS(&infoQueue)))) {
 	delete winApp;
 
 
-	////リソースリークチェック
-	//IDXGIDebug1* debug;
-	//if (SUCCEEDED(DXGIGetDebugInterface1(0, IID_PPV_ARGS(&debug)))) {
-	//	debug->ReportLiveObjects(DXGI_DEBUG_ALL, DXGI_DEBUG_RLO_ALL);
-	//	debug->ReportLiveObjects(DXGI_DEBUG_APP, DXGI_DEBUG_RLO_ALL);
-	//	debug->ReportLiveObjects(DXGI_DEBUG_D3D12, DXGI_DEBUG_RLO_ALL);
-	//	debug->Release();
-	//}
+	//リソースリークチェック
+	IDXGIDebug1* debug;
+	if (SUCCEEDED(DXGIGetDebugInterface1(0, IID_PPV_ARGS(&debug)))) {
+		debug->ReportLiveObjects(DXGI_DEBUG_ALL, DXGI_DEBUG_RLO_ALL);
+		debug->ReportLiveObjects(DXGI_DEBUG_APP, DXGI_DEBUG_RLO_ALL);
+		debug->ReportLiveObjects(DXGI_DEBUG_D3D12, DXGI_DEBUG_RLO_ALL);
+		debug->Release();
+	}
 
 	return 0;
 }
