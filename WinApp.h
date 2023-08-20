@@ -23,6 +23,8 @@ public: // メンバ関数
 
 	HWND GetHwnd() const { return hwnd_; }
 
+	HINSTANCE GetHInstance() const { return wndClass_.hInstance; }
+
 private: // メンバ関数
 	WinApp() = default;
 	~WinApp() = default;
@@ -32,5 +34,6 @@ private: // メンバ関数
 private: // メンバ変数
 	// Window関連
 	HWND hwnd_ = nullptr;   // ウィンドウハンドル
+	WNDCLASS wndClass_{}; // ウィンドウクラス
 };
 
