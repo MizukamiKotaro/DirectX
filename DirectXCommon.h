@@ -2,7 +2,6 @@
 
 #include<d3d12.h>
 #include<dxgi1_6.h>
-#include<cassert>
 #pragma comment(lib, "d3d12.lib")
 #pragma comment(lib, "dxgi.lib")
 #include <wrl.h>
@@ -12,8 +11,11 @@ class DirectXCommon
 {
 public: // メンバ関数
 
-	DirectXCommon();
-	~DirectXCommon();
+	/// <summary>
+	/// シングルトンインスタンスの取得
+	/// </summary>
+	/// <returns></returns>
+	static DirectXCommon* GetInstance();
 
 	/// <summary>
 	/// 初期化
@@ -28,6 +30,8 @@ public: // メンバ関数
 	/// <returns>デバイス</returns>
 	ID3D12Device* GetDevice() { return device_.Get(); }
 
+	ID3D12GraphicsCommandList* GetCommandList() const { return commandList_.Get(); }
+
 	/// <summary>
 	/// ディスクリプタヒープの作成関数
 	/// </summary>
@@ -36,26 +40,31 @@ public: // メンバ関数
 private: // メンバ変数
 public: //確認のため
 	// ウィンドウズアプリケーション管理
-	WinApp* winApp_ = nullptr;
+	WinApp* winApp_;
 
-	Microsoft::WRL::ComPtr<IDXGIFactory7> dxgiFactory_ = nullptr;
-	Microsoft::WRL::ComPtr<ID3D12Device> device_ = nullptr;
-	Microsoft::WRL::ComPtr<ID3D12CommandQueue> commandQueue_ = nullptr;
-	Microsoft::WRL::ComPtr<ID3D12CommandAllocator> commandAllocator_ = nullptr;
-	Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList> commandList_ = nullptr;
-	Microsoft::WRL::ComPtr<IDXGISwapChain4> swapChain_ = nullptr;
-	Microsoft::WRL::ComPtr<ID3D12Resource> swapChainResources_[2] = {}; // ダブルバッファだから
-	Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> rtvHeap_ = nullptr;
-	Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> dsvHeap_ = nullptr;
-	Microsoft::WRL::ComPtr<ID3D12Fence> fence_ = nullptr;
+	Microsoft::WRL::ComPtr<IDXGIFactory7> dxgiFactory_;
+	Microsoft::WRL::ComPtr<ID3D12Device> device_;
+	Microsoft::WRL::ComPtr<ID3D12CommandQueue> commandQueue_;
+	Microsoft::WRL::ComPtr<ID3D12CommandAllocator> commandAllocator_;
+	Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList> commandList_;
+	Microsoft::WRL::ComPtr<IDXGISwapChain4> swapChain_;
+	Microsoft::WRL::ComPtr<ID3D12Resource> swapChainResources_[2]; // ダブルバッファだから
+	Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> rtvHeap_;
+	Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> dsvHeap_;
+	Microsoft::WRL::ComPtr<ID3D12Fence> fence_;
 	uint64_t fenceValue_ = 0;
-	HANDLE fenceEvent_ = nullptr;
+	HANDLE fenceEvent_;
 
 	// 確認用
 	//RTVを2つ作るのでディスクリプタを2つ用意
-	D3D12_CPU_DESCRIPTOR_HANDLE rtvHandles_[2] = {};
+	D3D12_CPU_DESCRIPTOR_HANDLE rtvHandles_[2];
 
 private: // メンバ関数
+
+	DirectXCommon() = default;
+	~DirectXCommon() = default;
+	DirectXCommon(const DirectXCommon&) = delete;
+	const DirectXCommon& operator=(const DirectXCommon&) = delete;
 
 	/// <summary>
 	/// DXGIデバイス初期化

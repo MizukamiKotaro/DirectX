@@ -291,7 +291,7 @@ D3D12_GPU_DESCRIPTOR_HANDLE GetGPUDescriptorHandle(ID3D12DescriptorHeap* descrip
 //Windowsアプリでのエントリーポイント(main関数)
 int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR lpCmdLine, _In_ int nShowCmd) {
 
-	//ResourceLeackChecker leakCheck;
+	ResourceLeackChecker leakCheck;
 
 	WinApp* winApp= new WinApp();
 
@@ -1526,18 +1526,18 @@ if (SUCCEEDED(device->QueryInterface(IID_PPV_ARGS(&infoQueue)))) {
 			
 
 
-			//commandList->IASetVertexBuffers(0, 1, &vertexBufferView); // VBVを設定
-			////commandList->IASetIndexBuffer(&indexBufferViewSphere);
+			commandList->IASetVertexBuffers(0, 1, &vertexBufferView); // VBVを設定
+			//commandList->IASetIndexBuffer(&indexBufferViewSphere);
 
-			////マテリアルCBufferの場所を設定
-			//commandList->SetGraphicsRootConstantBufferView(0, materialResource->GetGPUVirtualAddress());
-			////wvp用のBufferの場所を設定
-			//commandList->SetGraphicsRootConstantBufferView(1, transformationMatrixResource->GetGPUVirtualAddress());
-			////SRVのDescriptorTableの先頭に設定。2はrootParameter[2]である
-			//commandList->SetGraphicsRootDescriptorTable(2, textureSrvHandleGPU2);
-			////描画!!!!（DrawCall/ドローコール）。3頂点で1つのインスタンス。インスタンスについては今後
-			//commandList->DrawInstanced(UINT(modelData.verteces.size()), 1, 0, 0);
-			//
+			//マテリアルCBufferの場所を設定
+			commandList->SetGraphicsRootConstantBufferView(0, materialResource->GetGPUVirtualAddress());
+			//wvp用のBufferの場所を設定
+			commandList->SetGraphicsRootConstantBufferView(1, transformationMatrixResource->GetGPUVirtualAddress());
+			//SRVのDescriptorTableの先頭に設定。2はrootParameter[2]である
+			commandList->SetGraphicsRootDescriptorTable(2, textureSrvHandleGPU2);
+			//描画!!!!（DrawCall/ドローコール）。3頂点で1つのインスタンス。インスタンスについては今後
+			commandList->DrawInstanced(UINT(modelData.verteces.size()), 1, 0, 0);
+			
 	
 			if (drawTr01) {
 				//三角形の描画
@@ -1702,14 +1702,14 @@ if (SUCCEEDED(device->QueryInterface(IID_PPV_ARGS(&infoQueue)))) {
 	delete winApp;
 
 
-	//リソースリークチェック
-	IDXGIDebug1* debug;
-	if (SUCCEEDED(DXGIGetDebugInterface1(0, IID_PPV_ARGS(&debug)))) {
-		debug->ReportLiveObjects(DXGI_DEBUG_ALL, DXGI_DEBUG_RLO_ALL);
-		debug->ReportLiveObjects(DXGI_DEBUG_APP, DXGI_DEBUG_RLO_ALL);
-		debug->ReportLiveObjects(DXGI_DEBUG_D3D12, DXGI_DEBUG_RLO_ALL);
-		debug->Release();
-	}
+	////リソースリークチェック
+	//IDXGIDebug1* debug;
+	//if (SUCCEEDED(DXGIGetDebugInterface1(0, IID_PPV_ARGS(&debug)))) {
+	//	debug->ReportLiveObjects(DXGI_DEBUG_ALL, DXGI_DEBUG_RLO_ALL);
+	//	debug->ReportLiveObjects(DXGI_DEBUG_APP, DXGI_DEBUG_RLO_ALL);
+	//	debug->ReportLiveObjects(DXGI_DEBUG_D3D12, DXGI_DEBUG_RLO_ALL);
+	//	debug->Release();
+	//}
 
 	return 0;
 }

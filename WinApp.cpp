@@ -20,13 +20,18 @@ LRESULT CALLBACK WinApp::WindowProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM l
 	return DefWindowProc(hwnd, msg, wparam, lparam);
 }
 
-WinApp::WinApp() {
-	
+WinApp* WinApp::GetInstance() {
+	static WinApp instance;
+	return &instance;
 }
 
-WinApp::~WinApp() {
-	CloseWindow(hwnd_);
-}
+//WinApp::WinApp() {
+//	
+//}
+//
+//WinApp::~WinApp() {
+//	CloseWindow(hwnd_);
+//}
 
 void WinApp::CreateGameWindow() {
 	//COM(Component Object Model)の初期化

@@ -2,31 +2,28 @@
 
 #include "DebugLog.h"
 #include<format>
+#include<cassert>
 
-DirectXCommon::DirectXCommon() {
 
+DirectXCommon* DirectXCommon::GetInstance() {
+	static DirectXCommon instance;
+	return &instance;
 }
 
-DirectXCommon::~DirectXCommon() {
-	//winAppが悪さしてる
-	delete winApp_;
-	dxgiFactory_->Release();
-	device_->Release();
-	commandQueue_->Release();
-	commandAllocator_->Release();
-	commandList_->Release();
-	swapChainResources_[0]->Release();
-	swapChainResources_[1]->Release();
-	swapChain_->Release();
-	rtvHeap_->Release();
-	dsvHeap_->Release();
-	CloseHandle(fenceEvent_);
-	fence_->Release();
-}
+//DirectXCommon::DirectXCommon() {
+//
+//}
+//
+//DirectXCommon::~DirectXCommon() {
+//	
+//	
+//	CloseHandle(fenceEvent_);
+//	
+//}
 
 void DirectXCommon::Initialize(WinApp* winApp) {
 
-	winApp_ = new WinApp();
+	
 	winApp_ = winApp;
 
 	// DXGIデバイス初期化
@@ -52,7 +49,6 @@ void DirectXCommon::Initialize(WinApp* winApp) {
 void DirectXCommon::Initialize() {
 
 
-	winApp_ = new WinApp();
 	winApp_->CreateGameWindow();
 
 	// DXGIデバイス初期化
@@ -135,7 +131,6 @@ void DirectXCommon::InitializeDXGIDevice() {
 	assert(device_ != nullptr);
 	DebugLog::Log("Complete create D3D12Device!!!\n");// 初期化完了のログを出す
 
-	useAdapter->Release();
 }
 
 void DirectXCommon::CreateSwapChain() {
