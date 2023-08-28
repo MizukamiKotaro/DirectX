@@ -81,7 +81,7 @@
 //
 //}
 
-ModelData ModelData::LoadObjeFile(const std::string& directoryPath, const std::string& fileName) {
+ModelData ModelData::LoadObjFile(const std::string& directoryPath, const std::string& fileName) {
 
 	// 1. 中で必要となる変数の宣言
 	ModelData modelData; // 構築するModelData

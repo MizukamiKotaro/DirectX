@@ -25,6 +25,16 @@ public: // メンバ関数
 	void Initialize();
 
 	/// <summary>
+	/// 描画前処理
+	/// </summary>
+	void PreDraw();
+
+	/// <summary>
+	/// 描画後処理
+	/// </summary>
+	void PostDraw();
+
+	/// <summary>
 	/// デバイスの取得
 	/// </summary>
 	/// <returns>デバイス</returns>
@@ -53,11 +63,11 @@ public: //確認のため
 	Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> dsvHeap_;
 	Microsoft::WRL::ComPtr<ID3D12Fence> fence_;
 	uint64_t fenceValue_ = 0;
-	HANDLE fenceEvent_;
+	HANDLE fenceEvent_ = 0;
 
 	// 確認用
 	//RTVを2つ作るのでディスクリプタを2つ用意
-	D3D12_CPU_DESCRIPTOR_HANDLE rtvHandles_[2];
+	D3D12_CPU_DESCRIPTOR_HANDLE rtvHandles_[2]{};
 
 private: // メンバ関数
 

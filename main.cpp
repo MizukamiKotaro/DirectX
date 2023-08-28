@@ -620,7 +620,7 @@ if (SUCCEEDED(device->QueryInterface(IID_PPV_ARGS(&infoQueue)))) {
 
 
 	// モデル読み込み
-	ModelData modelData = ModelData::LoadObjeFile("resources", "axis.obj");
+	ModelData modelData = ModelData::LoadObjFile("resources", "axis.obj");
 
 
 

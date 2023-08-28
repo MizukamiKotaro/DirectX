@@ -11,5 +11,5 @@ struct ModelData
 
 	//static ModelData LoadObjeFile(const std::string& fileName);
 
-	static ModelData LoadObjeFile(const std::string& directoryPath, const std::string& fileName);
+	static ModelData LoadObjFile(const std::string& directoryPath, const std::string& fileName);
 };

@@ -2,6 +2,7 @@
 #include "Vector4.h"
 #include <stdint.h>
 #include "Matrix4x4.h"
+#include <string>
 
 //PS.hlslにも
 struct Material {
